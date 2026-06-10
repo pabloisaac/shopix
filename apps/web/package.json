@@ -1,0 +1,33 @@
+{
+  "name": "@cripex/web",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@cripex/shared": "workspace:*",
+    "@rainbow-me/rainbowkit": "^2.2.4",
+    "@tanstack/react-query": "^5.64.1",
+    "clsx": "^2.1.1",
+    "next": "14.2.24",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "siwe": "^2.3.2",
+    "viem": "^2.22.13",
+    "wagmi": "^2.14.11",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.5.1",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.2"
+  }
+}

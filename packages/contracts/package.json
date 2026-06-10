@@ -1,0 +1,23 @@
+{
+  "name": "@cripex/contracts",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "build": "npx hardhat compile",
+    "test": "npx hardhat test",
+    "deploy:local": "npx hardhat run scripts/deploy.ts --network localhost",
+    "deploy:amoy": "npx hardhat run scripts/deploy.ts --network amoy",
+    "node": "npx hardhat node",
+    "coverage": "npx hardhat coverage"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.12",
+    "@openzeppelin/contracts": "^5.1.0",
+    "hardhat": "^2.22.17",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "@kleros/erc-792": "^8.0.0"
+  }
+}

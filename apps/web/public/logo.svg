@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <defs>
+    <linearGradient id="shield-grad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00C896"/>
+      <stop offset="100%" stop-color="#00A87E"/>
+    </linearGradient>
+    <linearGradient id="c-grad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#e0fdf4"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#00C896" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Escudo -->
+  <path
+    d="M100 18 L168 46 L168 104 C168 142 138 172 100 182 C62 172 32 142 32 104 L32 46 Z"
+    fill="url(#shield-grad)"
+    filter="url(#shadow)"
+  />
+
+  <!-- Escudo inner highlight -->
+  <path
+    d="M100 30 L156 54 L156 104 C156 136 130 162 100 170 C70 162 44 136 44 104 L44 54 Z"
+    fill="none"
+    stroke="rgba(255,255,255,0.18)"
+    stroke-width="1.5"
+  />
+
+  <!-- Letra C con corte moderno -->
+  <!-- Arco principal de la C -->
+  <path
+    d="M127 72
+       C127 72 118 62 100 62
+       C78 62 60 79 60 100
+       C60 121 78 138 100 138
+       C118 138 127 128 127 128"
+    stroke="url(#c-grad)"
+    stroke-width="17"
+    stroke-linecap="round"
+    fill="none"
+  />
+
+  <!-- Punto/nodo blockchain en la apertura de la C — top -->
+  <circle cx="127" cy="72" r="8" fill="white" opacity="0.95"/>
+  <circle cx="127" cy="72" r="4" fill="#00C896"/>
+
+  <!-- Punto/nodo blockchain en la apertura de la C — bottom -->
+  <circle cx="127" cy="128" r="8" fill="white" opacity="0.95"/>
+  <circle cx="127" cy="128" r="4" fill="#00C896"/>
+
+  <!-- Línea de conexión entre nodos (evoca blockchain) -->
+  <line x1="127" y1="80" x2="127" y2="120" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-dasharray="3 3"/>
+</svg>

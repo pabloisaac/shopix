@@ -1,0 +1,14 @@
+node_modules/
+.turbo/
+.env
+.env.local
+dist/
+.next/
+out/
+artifacts/
+cache/
+typechain-types/
+deployments/*.json
+!deployments/.gitkeep
+*.tsbuildinfo
+coverage/

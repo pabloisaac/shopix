@@ -1,0 +1,179 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Base ───────────────────────────────────────────────────── */
+
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html {
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+    color-scheme: light;
+  }
+
+  body {
+    background-color: #F7F8FA;
+    color: #0F172A;
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', sans-serif;
+    color: #0F172A;
+  }
+}
+
+/* ─── Components ─────────────────────────────────────────────── */
+
+@layer components {
+
+  /* ── Botón primario: gradiente firma teal → índigo ── */
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-5 py-2.5 rounded-xl
+           font-semibold text-sm text-white
+           bg-brand-gradient
+           hover:opacity-90 active:scale-[0.98]
+           transition-all duration-150 cursor-pointer
+           shadow-brand
+           disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none;
+  }
+
+  /* ── Botón secundario: borde teal ── */
+  .btn-secondary {
+    @apply inline-flex items-center justify-center px-5 py-2.5 rounded-xl
+           font-semibold text-sm text-text-primary
+           bg-white border-2 border-bg-border
+           hover:border-accent hover:text-accent hover:bg-accent-light
+           active:scale-[0.98] transition-all duration-150 cursor-pointer shadow-card;
+  }
+
+  /* ── Botón outline índigo ── */
+  .btn-indigo {
+    @apply inline-flex items-center justify-center px-5 py-2.5 rounded-xl
+           font-semibold text-sm text-secondary
+           bg-white border-2 border-secondary/30
+           hover:bg-secondary-light hover:border-secondary
+           active:scale-[0.98] transition-all duration-150 cursor-pointer;
+  }
+
+  /* ── Botón danger ── */
+  .btn-danger {
+    @apply inline-flex items-center justify-center px-5 py-2.5 rounded-xl
+           font-semibold text-sm text-red-600
+           bg-red-50 border border-red-200
+           hover:bg-red-100 hover:border-red-300
+           active:scale-[0.98] transition-all duration-150 cursor-pointer
+           disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none;
+  }
+
+  /* ── Input ── */
+  .input {
+    @apply w-full px-3.5 py-2.5 rounded-xl
+           bg-white border border-bg-border
+           text-text-primary text-sm placeholder:text-text-faint
+           focus:outline-none focus:ring-2 focus:ring-accent/25 focus:border-accent
+           transition-all duration-150;
+  }
+
+  /* ── Cards ── */
+  .card {
+    @apply bg-white rounded-2xl border border-bg-border shadow-card;
+  }
+
+  .card-hover {
+    @apply card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200;
+  }
+
+  /* ── Badges de estado ── */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
+  }
+
+  .badge-pending    { @apply badge bg-yellow-50 text-yellow-700 border border-yellow-200; }
+  .badge-active     { @apply badge bg-accent-light text-accent-dim border border-accent/25; }
+  .badge-completed  { @apply badge bg-secondary-light text-secondary-dim border border-secondary/25; }
+  .badge-disputed   { @apply badge bg-orange-50 text-orange-700 border border-orange-200; }
+  .badge-refunded   { @apply badge bg-secondary-light text-secondary border border-secondary/20; }
+
+  /* ── Gradient text utility ── */
+  .text-brand-gradient {
+    @apply text-transparent bg-clip-text;
+    background-image: linear-gradient(135deg, #00C896 0%, #6366F1 100%);
+  }
+
+  /* ── Pill / chip de marca ── */
+  .brand-pill {
+    @apply inline-flex items-center gap-2 px-4 py-1.5 rounded-full
+           bg-white border border-accent/25 shadow-sm
+           text-sm font-semibold;
+    color: #00A87E;
+  }
+
+  /* ── Gradient border card (para destacados) ── */
+  .card-brand-border {
+    @apply bg-white rounded-2xl shadow-card;
+    border: 1.5px solid transparent;
+    background-clip: padding-box;
+    position: relative;
+  }
+  .card-brand-border::before {
+    content: '';
+    position: absolute;
+    inset: -1.5px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, #00C896, #6366F1);
+    z-index: -1;
+  }
+}
+
+/* ─── Navbar gradient line ──────────────────────────────────── */
+/* Línea fina debajo del navbar con el gradiente del logo */
+header.shopix-nav {
+  border-bottom: none !important;
+  box-shadow: 0 1px 0 0 #E5E7EB, 0 2px 0 0 rgba(0,0,0,0.01);
+}
+header.shopix-nav::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #00C896 0%, #6366F1 100%);
+  opacity: 0.6;
+}
+
+/* ─── Scrollbar ─────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #F1F5F9; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #00C896 0%, #6366F1 100%);
+  border-radius: 3px;
+}
+
+/* ─── Selección de texto ─────────────────────────────────────── */
+::selection {
+  background: rgba(99, 102, 241, 0.15);
+  color: #4F46E5;
+}
+
+/* ─── Animaciones ───────────────────────────────────────────── */
+@keyframes fadeIn  { from { opacity:0 }             to { opacity:1 } }
+@keyframes slideUp { from { opacity:0; transform:translateY(12px) } to { opacity:1; transform:translateY(0) } }
+@keyframes gradientShift {
+  0%   { background-position: 0% 50% }
+  50%  { background-position: 100% 50% }
+  100% { background-position: 0% 50% }
+}
+
+.animate-fade-in     { animation: fadeIn  200ms ease-out; }
+.animate-slide-up    { animation: slideUp 300ms ease-out; }
+.animate-gradient    {
+  background-size: 200% 200%;
+  animation: gradientShift 4s ease infinite;
+}

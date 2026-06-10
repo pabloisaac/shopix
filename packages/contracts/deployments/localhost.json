@@ -1,0 +1,11 @@
+{
+  "network": "localhost",
+  "chainId": "31337",
+  "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "timestamp": "2026-06-10T13:48:13.752Z",
+  "contracts": {
+    "MarketplaceEscrow": "0x9A676e781A523b5d0C0e43731313A708CB607508",
+    "USDT": "0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e",
+    "Kleros": "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82"
+  }
+}
