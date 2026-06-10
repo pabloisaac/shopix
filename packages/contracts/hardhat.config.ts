@@ -7,6 +7,7 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') })
 
 const PRIVATE_KEY = process.env.PRIVATE_KEY_DEPLOYER ||
   '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80' // hardhat default
+const PRIVATE_KEY_AMOY = process.env.PRIVATE_KEY_AMOY || PRIVATE_KEY
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -29,7 +30,14 @@ const config: HardhatUserConfig = {
     amoy: {
       url: process.env.NEXT_PUBLIC_ALCHEMY_POLYGON_RPC || 'https://rpc-amoy.polygon.technology',
       chainId: 80002,
-      accounts: [PRIVATE_KEY],
+      accounts: [PRIVATE_KEY_AMOY],
+      gasPrice: 'auto',
+    },
+    sepolia: {
+      url: process.env.ALCHEMY_SEPOLIA_RPC || `https://eth-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
+      chainId: 11155111,
+      accounts: [PRIVATE_KEY_AMOY],
+      gasPrice: 'auto',
     },
   },
   paths: {

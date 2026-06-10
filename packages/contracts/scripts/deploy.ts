@@ -22,7 +22,7 @@ async function main() {
   let usdtAddress: string
   let klerosAddress: string
 
-  if (network.name === 'localhost' || network.name === 'hardhat') {
+  if (network.name === 'localhost' || network.name === 'hardhat' || network.name === 'sepolia') {
     // Deploy mocks en local
     const MockUSDT = await ethers.getContractFactory('MockUSDT')
     const usdt = await MockUSDT.deploy()
