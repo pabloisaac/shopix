@@ -6,6 +6,14 @@ export default defineConfig({
   outDir: 'dist',
   clean: true,
   sourcemap: false,
-  skipNodeModulesBundle: true,
-  noExternal: ['@cripex/db', '@cripex/shared'],
+  // Bundlear TODO — incluyendo dependencias del workspace y externas
+  noExternal: [/.*/],
+  // Excluir solo módulos nativos que no se pueden bundlear
+  external: [
+    'pino',
+    'pino-pretty',
+    'bufferutil',
+    'utf-8-validate',
+    'fsevents',
+  ],
 })
