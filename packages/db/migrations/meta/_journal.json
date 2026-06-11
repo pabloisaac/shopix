@@ -36,6 +36,13 @@
       "when": 1781098250131,
       "tag": "0004_peaceful_wildside",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1781188226261,
+      "tag": "0005_clear_zarek",
+      "breakpoints": true
     }
   ]
 }

@@ -37,6 +37,7 @@ export const userRiskLevelEnum = pgEnum('user_risk_level', [
 ])
 
 export const orderStatusEnum = pgEnum('order_status', [
+  'awaiting_payment',  // dirección de depósito generada, esperando transferencia
   'pending_payment',
   'active',
   'completed',
@@ -173,6 +174,13 @@ export const orders = pgTable(
     returnTrackingNumber: text('return_tracking_number'),
     returnCarrier: returnCarrierEnum('return_carrier'),
     klerosCaseId: integer('kleros_case_id'),
+    // Modelo híbrido: direcciones de depósito y destino (pueden ser exchanges)
+    depositAddress:      text('deposit_address'),       // dirección temporal generada por Shopix
+    depositEncryptedKey: text('deposit_encrypted_key'), // clave privada encriptada de la dirección de depósito
+    sellerPayoutAddress: text('seller_payout_address'), // Nexo/BingX del vendedor
+    buyerRefundAddress:  text('buyer_refund_address'),  // Nexo/BingX del comprador
+    buyerEmail:          text('buyer_email'),           // para notificaciones sin wallet
+    confirmationToken:   text('confirmation_token'),    // token para confirmar recepción por link
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
   },
