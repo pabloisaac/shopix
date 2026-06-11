@@ -2,32 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { useAccount } from 'wagmi'
-import { api } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
-import { GlowCard } from '@/components/ui/GlowCard'
-
-interface UserAddress {
-  id: string
-  label: string
-  name: string
-  street: string
-  city: string
-  province: string
-  zip: string
-  phone?: string | null
-  isDefault: boolean
-}
-
-const EMPTY_FORM = {
-  label: 'Casa',
-  name: '',
-  street: '',
-  city: '',
-  province: '',
-  zip: '',
-  phone: '',
-  isDefault: false,
-}
+import { api } from '@/lib/api'
+import { getProfile, saveProfile, type BuyerProfile } from '@/store/profileStore'
 
 const PROVINCES = [
   'Buenos Aires', 'CABA', 'Catamarca', 'Chaco', 'Chubut', 'Córdoba',
@@ -37,342 +14,230 @@ const PROVINCES = [
   'Tierra del Fuego', 'Tucumán',
 ]
 
-export default function MisDireccionesPage() {
+export default function MiPerfilPage() {
   const { isConnected } = useAccount()
-  const { token } = useAuthStore()
-  const [addresses, setAddresses] = useState<UserAddress[]>([])
-  const [loading, setLoading] = useState(true)
-  const [showForm, setShowForm] = useState(false)
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [form, setForm] = useState({ ...EMPTY_FORM })
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const { token, user } = useAuthStore()
 
-  const fetchAddresses = async () => {
-    if (!token) return
-    try {
-      const data = await api.get<UserAddress[]>('/users/me/addresses', token)
-      setAddresses(data)
-    } catch {
-      setError('Error al cargar direcciones')
-    } finally {
-      setLoading(false)
-    }
-  }
+  // Perfil comprador (localStorage)
+  const [profile, setProfile] = useState<BuyerProfile>({
+    name: '', email: '', street: '', city: '',
+    province: '', zip: '', phone: '', refundAddress: '',
+  })
+  const [saved, setSaved] = useState(false)
+
+  // Payout address vendedor (API)
+  const [payoutAddress, setPayoutAddress] = useState('')
+  const [payoutSaving, setPayoutSaving] = useState(false)
+  const [payoutSaved, setPayoutSaved] = useState(false)
 
   useEffect(() => {
-    fetchAddresses()
+    setProfile(getProfile())
+  }, [])
+
+  useEffect(() => {
+    if (token) {
+      api.get<any>('/users/me', token)
+        .then(u => { if (u.payoutAddress) setPayoutAddress(u.payoutAddress) })
+        .catch(() => {})
+    }
   }, [token])
 
-  const handleEdit = (addr: UserAddress) => {
-    setEditingId(addr.id)
-    setForm({
-      label: addr.label,
-      name: addr.name,
-      street: addr.street,
-      city: addr.city,
-      province: addr.province,
-      zip: addr.zip,
-      phone: addr.phone || '',
-      isDefault: addr.isDefault,
-    })
-    setShowForm(true)
+  function update(field: keyof BuyerProfile, value: string) {
+    setProfile(prev => ({ ...prev, [field]: value }))
+    setSaved(false)
   }
 
-  const handleNew = () => {
-    setEditingId(null)
-    setForm({ ...EMPTY_FORM })
-    setShowForm(true)
+  function handleSaveProfile(e: React.FormEvent) {
+    e.preventDefault()
+    saveProfile(profile)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2500)
   }
 
-  const handleCancel = () => {
-    setShowForm(false)
-    setEditingId(null)
-    setForm({ ...EMPTY_FORM })
-    setError(null)
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function handleSavePayout(e: React.FormEvent) {
     e.preventDefault()
     if (!token) return
-    setSaving(true)
-    setError(null)
+    setPayoutSaving(true)
     try {
-      if (editingId) {
-        await api.put(`/users/me/addresses/${editingId}`, form, token)
-      } else {
-        await api.post('/users/me/addresses', form, token)
-      }
-      await fetchAddresses()
-      handleCancel()
-    } catch (err: any) {
-      setError(err.message || 'Error al guardar')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const handleSetDefault = async (id: string) => {
-    if (!token) return
-    try {
-      await api.patch(`/users/me/addresses/${id}/default`, {}, token)
-      await fetchAddresses()
-    } catch {
-      setError('Error al actualizar')
-    }
-  }
-
-  const handleDelete = async (id: string) => {
-    if (!token) return
-    if (!confirm('¿Eliminar esta dirección?')) return
-    try {
-      await api.delete(`/users/me/addresses/${id}`, token)
-      await fetchAddresses()
-    } catch {
-      setError('Error al eliminar')
-    }
-  }
-
-  if (!isConnected) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-shopix-muted">Conectá tu wallet para ver tus direcciones.</p>
-      </div>
-    )
+      await api.patch('/users/me', { payoutAddress }, token)
+      setPayoutSaved(true)
+      setTimeout(() => setPayoutSaved(false), 2500)
+    } catch {}
+    finally { setPayoutSaving(false) }
   }
 
   return (
-    <div className="min-h-screen bg-bg-base px-4 py-10 max-w-2xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary">Mis Direcciones</h1>
-          <p className="text-shopix-muted text-sm mt-1">Gestioná tus direcciones de envío</p>
-        </div>
-        {!showForm && (
-          <button onClick={handleNew} className="btn-primary px-4 py-2 text-sm">
-            + Nueva dirección
-          </button>
-        )}
+    <div className="max-w-2xl mx-auto px-4 py-10 space-y-8">
+
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-display font-bold text-text-primary">Mi Perfil</h1>
+        <p className="text-text-muted text-sm mt-1">
+          Configurá tus datos una vez y el checkout se pre-llenará automáticamente.
+          Se guarda en tu dispositivo, sin necesidad de cuenta.
+        </p>
       </div>
 
-      {error && (
-        <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-          {error}
-        </div>
-      )}
+      {/* ── Datos personales + envío ── */}
+      <section className="bg-white rounded-2xl border border-bg-border p-6 shadow-card">
+        <h2 className="font-display font-semibold text-text-primary mb-5 flex items-center gap-2">
+          <span className="w-7 h-7 rounded-lg bg-accent/10 flex items-center justify-center text-sm">📦</span>
+          Datos de envío
+        </h2>
 
-      {/* Formulario nueva/editar */}
-      {showForm && (
-        <GlowCard className="mb-6 p-6">
-          <h2 className="text-lg font-semibold text-text-primary mb-5">
-            {editingId ? 'Editar dirección' : 'Nueva dirección'}
-          </h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Label */}
+        <form onSubmit={handleSaveProfile} className="space-y-4">
+          {/* Nombre + Email */}
+          <div className="grid sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm text-shopix-muted mb-1">Etiqueta</label>
-              <div className="flex gap-2 flex-wrap">
-                {['Casa', 'Trabajo', 'Otro'].map(opt => (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={() => setForm(f => ({ ...f, label: opt }))}
-                    className={`px-3 py-1 rounded-full text-sm border transition-colors ${
-                      form.label === opt
-                        ? 'border-accent bg-accent/10 text-accent'
-                        : 'border-border text-shopix-muted hover:border-accent/50'
-                    }`}
-                  >
-                    {opt}
-                  </button>
-                ))}
-                {!['Casa', 'Trabajo', 'Otro'].includes(form.label) && (
-                  <span className="px-3 py-1 rounded-full text-sm border border-accent bg-accent/10 text-accent">
-                    {form.label}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Nombre completo */}
-            <div>
-              <label className="block text-sm text-shopix-muted mb-1">Nombre completo del destinatario *</label>
+              <label className="text-xs text-text-muted mb-1 block">Nombre completo *</label>
               <input
-                type="text"
                 className="input w-full"
-                value={form.name}
-                onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                 placeholder="Ej: Juan Pérez"
+                value={profile.name}
+                onChange={e => update('name', e.target.value)}
                 required
               />
             </div>
-
-            {/* Calle */}
             <div>
-              <label className="block text-sm text-shopix-muted mb-1">Calle y número *</label>
+              <label className="text-xs text-text-muted mb-1 block">Email para notificaciones</label>
               <input
-                type="text"
+                type="email"
                 className="input w-full"
-                value={form.street}
-                onChange={e => setForm(f => ({ ...f, street: e.target.value }))}
-                placeholder="Ej: Av. Corrientes 1234 Piso 3 Dpto B"
-                required
+                placeholder="tu@email.com"
+                value={profile.email}
+                onChange={e => update('email', e.target.value)}
               />
             </div>
+          </div>
 
-            {/* Ciudad y Código Postal */}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm text-shopix-muted mb-1">Ciudad *</label>
-                <input
-                  type="text"
-                  className="input w-full"
-                  value={form.city}
-                  onChange={e => setForm(f => ({ ...f, city: e.target.value }))}
-                  placeholder="Ej: Buenos Aires"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-shopix-muted mb-1">Código postal *</label>
-                <input
-                  type="text"
-                  className="input w-full"
-                  value={form.zip}
-                  onChange={e => setForm(f => ({ ...f, zip: e.target.value }))}
-                  placeholder="Ej: 1043"
-                  required
-                />
-              </div>
-            </div>
+          {/* Dirección */}
+          <div>
+            <label className="text-xs text-text-muted mb-1 block">Calle y número *</label>
+            <input
+              className="input w-full"
+              placeholder="Ej: Av. Corrientes 1234, Piso 3 Dpto B"
+              value={profile.street}
+              onChange={e => update('street', e.target.value)}
+            />
+          </div>
 
-            {/* Provincia */}
+          <div className="grid sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-sm text-shopix-muted mb-1">Provincia *</label>
+              <label className="text-xs text-text-muted mb-1 block">Ciudad *</label>
+              <input
+                className="input w-full"
+                placeholder="Ej: Buenos Aires"
+                value={profile.city}
+                onChange={e => update('city', e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-xs text-text-muted mb-1 block">Provincia *</label>
               <select
                 className="input w-full"
-                value={form.province}
-                onChange={e => setForm(f => ({ ...f, province: e.target.value }))}
-                required
+                value={profile.province}
+                onChange={e => update('province', e.target.value)}
               >
-                <option value="">Seleccioná una provincia</option>
-                {PROVINCES.map(p => (
-                  <option key={p} value={p}>{p}</option>
-                ))}
+                <option value="">Seleccioná</option>
+                {PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
               </select>
             </div>
-
-            {/* Teléfono */}
             <div>
-              <label className="block text-sm text-shopix-muted mb-1">Teléfono de contacto</label>
+              <label className="text-xs text-text-muted mb-1 block">Código postal *</label>
               <input
-                type="tel"
                 className="input w-full"
-                value={form.phone}
-                onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
-                placeholder="Ej: +54 11 1234-5678"
+                placeholder="Ej: 1043"
+                value={profile.zip}
+                onChange={e => update('zip', e.target.value)}
               />
             </div>
+          </div>
 
-            {/* Default */}
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                className="w-4 h-4 accent-accent"
-                checked={form.isDefault}
-                onChange={e => setForm(f => ({ ...f, isDefault: e.target.checked }))}
-              />
-              <span className="text-sm text-text-primary">Usar como dirección predeterminada</span>
+          <div>
+            <label className="text-xs text-text-muted mb-1 block">Teléfono (opcional)</label>
+            <input
+              type="tel"
+              className="input w-full"
+              placeholder="+54 11 1234-5678"
+              value={profile.phone}
+              onChange={e => update('phone', e.target.value)}
+            />
+          </div>
+
+          {/* Refund address */}
+          <div className="pt-2 border-t border-bg-border">
+            <label className="text-xs text-text-muted mb-1 block">
+              Dirección USDT para reembolsos *
+              <span className="ml-1 text-text-faint">(en caso de disputa o cancelación)</span>
             </label>
+            <input
+              className="input w-full font-mono text-sm"
+              placeholder="0x... (Nexo, BingX, MetaMask, cualquier wallet)"
+              value={profile.refundAddress}
+              onChange={e => update('refundAddress', e.target.value)}
+            />
+            <p className="text-xs text-text-faint mt-1">
+              Puede ser la dirección de depósito de tu cuenta Nexo, BingX u otra wallet. Solo se usa si hay un reembolso.
+            </p>
+          </div>
 
-            <div className="flex gap-3 pt-2">
-              <button
-                type="submit"
-                disabled={saving}
-                className="btn-primary flex-1 py-2 disabled:opacity-50"
-              >
-                {saving ? 'Guardando...' : editingId ? 'Guardar cambios' : 'Agregar dirección'}
-              </button>
-              <button type="button" onClick={handleCancel} className="btn-secondary px-6 py-2">
-                Cancelar
-              </button>
-            </div>
-          </form>
-        </GlowCard>
-      )}
+          <button
+            type="submit"
+            className={`btn-primary w-full transition-all ${saved ? 'bg-green-500 border-green-500' : ''}`}
+          >
+            {saved ? '✓ Guardado' : 'Guardar perfil'}
+          </button>
+        </form>
+      </section>
 
-      {/* Lista de direcciones */}
-      {loading ? (
-        <div className="space-y-3">
-          {[1, 2].map(i => (
-            <div key={i} className="h-28 rounded-xl bg-bg-elevated animate-pulse" />
-          ))}
-        </div>
-      ) : addresses.length === 0 ? (
-        <div className="text-center py-16">
-          <div className="text-4xl mb-3">📦</div>
-          <p className="text-shopix-muted">No tenés direcciones guardadas.</p>
-          <p className="text-shopix-muted text-sm mt-1">Agregá una para agilizar tus compras.</p>
-          {!showForm && (
-            <button onClick={handleNew} className="btn-primary mt-4 px-6 py-2">
-              Agregar primera dirección
-            </button>
-          )}
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {addresses.map(addr => (
-            <GlowCard
-              key={addr.id}
-              className={`p-5 transition-all ${addr.isDefault ? 'border-accent/40' : ''}`}
+      {/* ── Vendedor: payout address ── */}
+      {isConnected && token && (
+        <section className="bg-white rounded-2xl border border-bg-border p-6 shadow-card">
+          <h2 className="font-display font-semibold text-text-primary mb-1 flex items-center gap-2">
+            <span className="w-7 h-7 rounded-lg bg-secondary-light flex items-center justify-center text-sm">💳</span>
+            Dirección de cobro (vendedor)
+          </h2>
+          <p className="text-xs text-text-muted mb-4">
+            Acá es donde recibís los USDT cuando un comprador confirma la entrega.
+            Puede ser Nexo, BingX, MetaMask — cualquier dirección ERC-20.
+          </p>
+
+          <form onSubmit={handleSavePayout} className="space-y-3">
+            <input
+              className="input w-full font-mono text-sm"
+              placeholder="0x... (tu wallet de cobro)"
+              value={payoutAddress}
+              onChange={e => { setPayoutAddress(e.target.value); setPayoutSaved(false) }}
+            />
+            <button
+              type="submit"
+              disabled={payoutSaving || !payoutAddress}
+              className={`btn-primary w-full transition-all ${payoutSaved ? 'bg-green-500 border-green-500' : ''}`}
             >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold text-text-primary">{addr.label}</span>
-                    {addr.isDefault && (
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">
-                        Predeterminada
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-sm text-text-primary font-medium">{addr.name}</p>
-                  <p className="text-sm text-shopix-muted">{addr.street}</p>
-                  <p className="text-sm text-shopix-muted">
-                    {addr.city}, {addr.province} — CP {addr.zip}
-                  </p>
-                  {addr.phone && (
-                    <p className="text-sm text-shopix-muted mt-0.5">📞 {addr.phone}</p>
-                  )}
-                </div>
+              {payoutSaving ? 'Guardando…' : payoutSaved ? '✓ Guardado' : 'Guardar dirección de cobro'}
+            </button>
+          </form>
 
-                <div className="flex flex-col gap-2 shrink-0">
-                  {!addr.isDefault && (
-                    <button
-                      onClick={() => handleSetDefault(addr.id)}
-                      className="text-xs text-accent hover:underline whitespace-nowrap"
-                    >
-                      Usar por defecto
-                    </button>
-                  )}
-                  <button
-                    onClick={() => handleEdit(addr)}
-                    className="text-xs text-shopix-muted hover:text-text-primary whitespace-nowrap"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => handleDelete(addr.id)}
-                    className="text-xs text-red-400 hover:text-red-300 whitespace-nowrap"
-                  >
-                    Eliminar
-                  </button>
-                </div>
-              </div>
-            </GlowCard>
-          ))}
+          {user?.walletAddress && (
+            <div className="mt-4 pt-4 border-t border-bg-border">
+              <p className="text-xs text-text-faint mb-1">Tu wallet conectada (identidad vendedor)</p>
+              <p className="text-xs font-mono text-text-muted">{user.walletAddress}</p>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* Info para compradores sin wallet */}
+      {!isConnected && (
+        <div className="bg-accent/5 border border-accent/15 rounded-xl p-4 text-sm">
+          <p className="text-accent font-medium mb-1">💡 ¿Querés vender?</p>
+          <p className="text-text-muted text-xs">
+            Para publicar productos necesitás conectar una wallet como vendedor.
+            Para comprar, estos datos son suficientes.
+          </p>
         </div>
       )}
+
     </div>
   )
 }

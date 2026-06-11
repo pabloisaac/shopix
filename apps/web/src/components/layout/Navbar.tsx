@@ -11,7 +11,7 @@ const NAV_LINKS = [
   { href: '/marketplace',     label: 'Marketplace' },
   { href: '/vender',          label: 'Vender' },
   { href: '/mis-ordenes',     label: 'Mis Órdenes' },
-  { href: '/mis-direcciones', label: 'Mis Direcciones' },
+  { href: '/mis-direcciones', label: 'Mi Perfil' },
 ]
 
 export function Navbar() {

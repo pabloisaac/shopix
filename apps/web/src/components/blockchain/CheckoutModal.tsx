@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react'
 import { api } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
+import { getProfile } from '@/store/profileStore'
 import { PriceDisplay } from '@/components/ui/PriceDisplay'
 import Link from 'next/link'
-import Image from 'next/image'
 
 interface CheckoutModalProps {
   product: {
@@ -16,18 +16,6 @@ interface CheckoutModalProps {
   }
   onClose: () => void
   onSuccess: (orderId: string) => void
-}
-
-interface UserAddress {
-  id: string
-  label: string
-  name: string
-  street: string
-  city: string
-  province: string
-  zip: string
-  phone?: string | null
-  isDefault: boolean
 }
 
 type Step = 'shipping' | 'payment' | 'waiting' | 'done'
@@ -41,34 +29,35 @@ export function CheckoutModal({ product, onClose, onSuccess }: CheckoutModalProp
   const [error, setError]                 = useState<string | null>(null)
   const [loading, setLoading]             = useState(false)
 
-  // Datos del comprador
+  // Datos del comprador — pre-llenados desde perfil guardado
   const [refundAddress, setRefundAddress] = useState('')
   const [buyerEmail, setBuyerEmail]       = useState('')
-  const [savedAddresses, setSavedAddresses] = useState<UserAddress[]>([])
-  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null)
-  const [useNewAddress, setUseNewAddress] = useState(false)
   const [newAddress, setNewAddress]       = useState({ ...EMPTY_ADDR })
-  const [loadingAddresses, setLoadingAddresses] = useState(false)
+  const [profileLoaded, setProfileLoaded] = useState(false)
+
+  // Pre-llenar desde perfil guardado en localStorage
+  useEffect(() => {
+    const p = getProfile()
+    if (p.refundAddress) setRefundAddress(p.refundAddress)
+    if (p.email) setBuyerEmail(p.email)
+    if (p.name || p.street) {
+      setNewAddress({
+        name: p.name || '',
+        street: p.street || '',
+        city: p.city || '',
+        province: p.province || '',
+        zip: p.zip || '',
+        phone: p.phone || '',
+      })
+    }
+    setProfileLoaded(true)
+  }, [])
 
   // Datos de pago generados
   const [orderId, setOrderId]             = useState<string | null>(null)
   const [depositAddress, setDepositAddress] = useState<string | null>(null)
   const [amountUsdt, setAmountUsdt]       = useState<string>(product.priceUsdt)
   const [pollCount, setPollCount]         = useState(0)
-
-  // Cargar direcciones guardadas si está logueado
-  useEffect(() => {
-    if (!token) return
-    setLoadingAddresses(true)
-    api.get<UserAddress[]>('/users/me/addresses', token)
-      .then(data => {
-        setSavedAddresses(data)
-        const def = data.find(a => a.isDefault) || data[0]
-        if (def) setSelectedAddressId(def.id)
-      })
-      .catch(() => {})
-      .finally(() => setLoadingAddresses(false))
-  }, [token])
 
   // Polling: verificar si llegó el pago
   useEffect(() => {
@@ -87,19 +76,8 @@ export function CheckoutModal({ product, onClose, onSuccess }: CheckoutModalProp
     return () => clearInterval(interval)
   }, [step, orderId])
 
-  function getShippingAddress() {
-    if (!useNewAddress && selectedAddressId) {
-      const addr = savedAddresses.find(a => a.id === selectedAddressId)
-      if (addr) return { name: addr.name, street: addr.street, city: addr.city, province: addr.province, zip: addr.zip, phone: addr.phone || '' }
-    }
-    return newAddress
-  }
-
   function canProceedShipping() {
-    const addr = useNewAddress || savedAddresses.length === 0 ? newAddress : null
-    if (addr) {
-      if (!addr.name || !addr.street || !addr.city || !addr.province || !addr.zip) return false
-    } else if (!selectedAddressId) return false
+    if (!newAddress.name || !newAddress.street || !newAddress.city || !newAddress.province || !newAddress.zip) return false
     if (!refundAddress.match(/^0x[0-9a-fA-F]{40}$/)) return false
     if (buyerEmail && !buyerEmail.includes('@')) return false
     return true
@@ -109,7 +87,6 @@ export function CheckoutModal({ product, onClose, onSuccess }: CheckoutModalProp
     setLoading(true)
     setError(null)
     try {
-      const shipping = getShippingAddress()
       const res = await api.post<{
         orderId: string
         depositAddress: string
@@ -118,7 +95,7 @@ export function CheckoutModal({ product, onClose, onSuccess }: CheckoutModalProp
         productId:     product.id,
         refundAddress,
         buyerEmail:    buyerEmail || undefined,
-        shippingAddress: shipping,
+        shippingAddress: newAddress,
       }, token || undefined)
 
       setOrderId(res.orderId)
@@ -168,65 +145,37 @@ export function CheckoutModal({ product, onClose, onSuccess }: CheckoutModalProp
           {step === 'shipping' && (
             <div className="space-y-4">
 
+              {/* Banner si el perfil no está configurado */}
+              {profileLoaded && !newAddress.name && (
+                <div className="bg-accent/5 border border-accent/20 rounded-xl p-3 flex items-start gap-2 text-sm">
+                  <span>💡</span>
+                  <p className="text-text-muted text-xs">
+                    Guardá tus datos en{' '}
+                    <Link href="/mis-direcciones" className="text-accent underline" onClick={onClose}>
+                      Mi Perfil
+                    </Link>{' '}
+                    para no tener que ingresarlos de nuevo.
+                  </p>
+                </div>
+              )}
+
               {/* Dirección de envío */}
               <div>
                 <p className="text-sm font-medium text-text-primary mb-2">Dirección de envío</p>
-
-                {loadingAddresses ? (
-                  <div className="h-14 rounded-xl bg-bg-secondary animate-pulse" />
-                ) : savedAddresses.length > 0 && !useNewAddress ? (
-                  <div className="space-y-2">
-                    {savedAddresses.map(addr => (
-                      <button
-                        key={addr.id}
-                        type="button"
-                        onClick={() => setSelectedAddressId(addr.id)}
-                        className={`w-full text-left p-3 rounded-xl border transition-colors ${
-                          selectedAddressId === addr.id
-                            ? 'border-accent bg-accent/5'
-                            : 'border-bg-border hover:border-accent/40 bg-bg-secondary'
-                        }`}
-                      >
-                        <div className="flex items-start gap-2">
-                          <span className={`mt-0.5 w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center ${selectedAddressId === addr.id ? 'border-accent' : 'border-shopix-muted'}`}>
-                            {selectedAddressId === addr.id && <span className="w-2 h-2 rounded-full bg-accent block" />}
-                          </span>
-                          <div>
-                            <p className="text-sm font-medium">{addr.label} {addr.isDefault && <span className="text-accent text-xs">(predeterminada)</span>}</p>
-                            <p className="text-xs text-shopix-muted">{addr.name} — {addr.street}</p>
-                            <p className="text-xs text-shopix-muted">{addr.city}, {addr.province} CP {addr.zip}</p>
-                          </div>
-                        </div>
-                      </button>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() => setUseNewAddress(true)}
-                      className="w-full text-left p-3 rounded-xl border border-dashed border-bg-border hover:border-accent/40 text-sm text-shopix-muted"
-                    >
-                      + Ingresar nueva dirección
-                    </button>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {(['name', 'street', 'city', 'province', 'zip', 'phone'] as const).map(f => (
-                      <input key={f} className="input" value={newAddress[f]} onChange={e => setNewAddress(p => ({ ...p, [f]: e.target.value }))}
-                        placeholder={{ name: 'Nombre completo *', street: 'Calle y número *', city: 'Ciudad *', province: 'Provincia *', zip: 'Código postal *', phone: 'Teléfono (opcional)' }[f]}
-                      />
-                    ))}
-                    {savedAddresses.length > 0 && (
-                      <button type="button" onClick={() => setUseNewAddress(false)} className="text-xs text-accent hover:underline">
-                        ← Usar dirección guardada
-                      </button>
-                    )}
-                  </div>
-                )}
+                <div className="space-y-2">
+                  {(['name', 'street', 'city', 'province', 'zip', 'phone'] as const).map(f => (
+                    <input key={f} className="input" value={newAddress[f]}
+                      onChange={e => setNewAddress(p => ({ ...p, [f]: e.target.value }))}
+                      placeholder={{ name: 'Nombre completo *', street: 'Calle y número *', city: 'Ciudad *', province: 'Provincia *', zip: 'Código postal *', phone: 'Teléfono (opcional)' }[f]}
+                    />
+                  ))}
+                </div>
               </div>
 
               {/* Dirección de reembolso */}
               <div>
                 <label className="text-sm font-medium text-text-primary block mb-1.5">
-                  Tu dirección USDT para reembolsos <span className="text-red-400">*</span>
+                  Dirección USDT para reembolsos <span className="text-red-400">*</span>
                 </label>
                 <input
                   className="input font-mono text-xs"
@@ -234,15 +183,15 @@ export function CheckoutModal({ product, onClose, onSuccess }: CheckoutModalProp
                   value={refundAddress}
                   onChange={e => setRefundAddress(e.target.value)}
                 />
-                <p className="text-xs text-shopix-faint mt-1">
-                  Solo se usa si hay un reembolso. Puede ser tu dirección de Nexo, BingX u otra wallet.
+                <p className="text-xs text-text-faint mt-1">
+                  Solo se usa si hay un reembolso. Puede ser tu Nexo, BingX u otra wallet.
                 </p>
               </div>
 
               {/* Email (opcional) */}
               <div>
                 <label className="text-sm font-medium text-text-primary block mb-1.5">
-                  Email para notificaciones <span className="text-shopix-faint text-xs">(opcional)</span>
+                  Email para notificaciones <span className="text-text-faint text-xs">(opcional)</span>
                 </label>
                 <input
                   className="input"
