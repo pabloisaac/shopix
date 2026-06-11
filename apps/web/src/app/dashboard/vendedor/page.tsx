@@ -2,19 +2,16 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useAccount } from 'wagmi'
 import { useAuthStore } from '@/store/authStore'
 import { api } from '@/lib/api'
 import { GlowCard } from '@/components/ui/GlowCard'
 import { Badge } from '@/components/ui/Badge'
 import { PriceDisplay } from '@/components/ui/PriceDisplay'
-import { useUSDTBalance } from '@/hooks/useUSDTBalance'
 import type { OrderStatus } from '@shopix/shared'
 
 export default function DashboardVendedorPage() {
-  const { isConnected } = useAccount()
   const { token, user } = useAuthStore()
-  const { balance } = useUSDTBalance()
+
   const [orders, setOrders]           = useState<any[]>([])
   const [loading, setLoading]         = useState(true)
   const [payoutAddress, setPayoutAddress] = useState('')
@@ -52,10 +49,10 @@ export default function DashboardVendedorPage() {
       .finally(() => setLoading(false))
   }, [token])
 
-  if (!isConnected || !token) {
+  if (!token) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-16 text-center text-shopix-faint">
-        Conectá tu wallet para ver el dashboard
+      <div className="max-w-2xl mx-auto px-4 py-16 text-center text-text-faint">
+        Iniciá sesión para ver tu dashboard de ventas.
       </div>
     )
   }
@@ -111,7 +108,7 @@ export default function DashboardVendedorPage() {
       {/* Métricas */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label: 'Saldo USDT', value: `${Number(balance).toFixed(2)} USDT`, accent: true },
+          
           { label: 'Ganado total', value: `${totalEarned.toFixed(2)} USDT`, accent: false },
           { label: 'Órdenes activas', value: String(activeCount), accent: false },
           { label: 'Completadas', value: String(completedCount), accent: false },

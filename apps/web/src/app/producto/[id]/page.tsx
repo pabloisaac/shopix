@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
-import { useAccount } from 'wagmi'
 import { api } from '@/lib/api'
 import { PriceDisplay } from '@/components/ui/PriceDisplay'
 import { Badge } from '@/components/ui/Badge'
@@ -15,7 +14,6 @@ const IPFS_GATEWAY = 'https://gateway.pinata.cloud'
 
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>()
-  const { isConnected } = useAccount()
   const { token } = useAuthStore()
   const [product, setProduct] = useState<any>(null)
   const [loading, setLoading] = useState(true)

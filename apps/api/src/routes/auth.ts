@@ -1,92 +1,104 @@
 import { FastifyInstance } from 'fastify'
-import { SiweMessage } from 'siwe'
-import { eq } from 'drizzle-orm'
+import { eq, or } from 'drizzle-orm'
 import { z } from 'zod'
+import bcrypt from 'bcryptjs'
 import { db } from '../lib/db'
-import { redis } from '../lib/redis'
 import { users } from '@shopix/db'
-import { randomBytes } from 'crypto'
-
-const NONCE_TTL = 300 // 5 minutos
 
 export async function authRoutes(app: FastifyInstance) {
-  // GET /auth/nonce — genera nonce temporal para SIWE
-  app.get('/nonce', async (request, reply) => {
-    const nonce = randomBytes(16).toString('hex')
-    const ip = request.ip
 
-    await redis.set(`siwe:nonce:${nonce}`, ip, 'EX', NONCE_TTL)
-
-    return reply.send({ nonce })
-  })
-
-  // POST /auth/verify — verifica la firma SIWE y emite JWT
-  app.post('/verify', async (request, reply) => {
+  // ── POST /auth/register ─────────────────────────────────────────────
+  app.post('/register', async (request, reply) => {
     const schema = z.object({
-      message: z.string(),
-      signature: z.string(),
+      email:    z.string().email(),
+      password: z.string().min(8, 'Mínimo 8 caracteres'),
+      username: z.string().min(3).max(32).optional(),
     })
 
     const parsed = schema.safeParse(request.body)
     if (!parsed.success) {
-      return reply.status(400).send({ error: 'Cuerpo inválido', details: parsed.error.issues })
+      return reply.status(400).send({ error: 'Datos inválidos', details: parsed.error.issues })
     }
 
-    const { message, signature } = parsed.data
+    const { email, password, username } = parsed.data
+    const emailLower = email.toLowerCase()
 
-    app.log.info({ message: message.slice(0, 200) }, 'SIWE message recibido')
-    let siweMessage: SiweMessage
-    try {
-      const parsed = (() => { try { return JSON.parse(message) } catch { return message } })()
-      siweMessage = new SiweMessage(parsed)
-    } catch (e: any) {
-      app.log.error({ err: e.message }, 'Error parseando SIWE')
-      return reply.status(400).send({ error: 'Mensaje SIWE inválido', detail: e.message })
-    }
+    // Verificar que no exista
+    const existing = await db.query.users.findFirst({
+      where: or(
+        eq(users.email, emailLower),
+        ...(username ? [eq(users.username, username)] : []),
+      ),
+    })
 
-    // Verificar que el nonce existe en Redis (previene replay attacks)
-    const storedIp = await redis.get(`siwe:nonce:${siweMessage.nonce}`)
-    if (!storedIp) {
-      return reply.status(400).send({ error: 'Nonce inválido o expirado' })
-    }
-
-    try {
-      const result = await siweMessage.verify({ signature })
-      if (!result.success) {
-        return reply.status(401).send({ error: 'Firma inválida' })
+    if (existing) {
+      if (existing.email === emailLower) {
+        return reply.status(409).send({ error: 'Este email ya está registrado' })
       }
-    } catch {
-      return reply.status(401).send({ error: 'Verificación de firma fallida' })
+      return reply.status(409).send({ error: 'Ese nombre de usuario ya está en uso' })
     }
 
-    // Consumir el nonce (un solo uso)
-    await redis.del(`siwe:nonce:${siweMessage.nonce}`)
+    const passwordHash = await bcrypt.hash(password, 12)
 
-    const walletAddress = siweMessage.address.toLowerCase()
+    const [user] = await db.insert(users).values({
+      email: emailLower,
+      passwordHash,
+      username: username ?? null,
+      walletAddress: null,
+    }).returning()
 
-    // Upsert del usuario
-    let user = await db.query.users.findFirst({
-      where: eq(users.walletAddress, walletAddress),
+    const token = app.jwt.sign({ userId: user.id, email: user.email })
+
+    return reply.status(201).send({
+      token,
+      user: { id: user.id, email: user.email, username: user.username },
     })
-
-    if (!user) {
-      const [newUser] = await db.insert(users).values({ walletAddress }).returning()
-      user = newUser
-    }
-
-    const token = app.jwt.sign({
-      userId: user.id,
-      walletAddress: user.walletAddress,
-    })
-
-    return reply.send({ token, user: { id: user.id, walletAddress: user.walletAddress, username: user.username } })
   })
 
-  // GET /auth/me — datos del usuario autenticado
+  // ── POST /auth/login ────────────────────────────────────────────────
+  app.post('/login', async (request, reply) => {
+    const schema = z.object({
+      email:    z.string().email(),
+      password: z.string(),
+    })
+
+    const parsed = schema.safeParse(request.body)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Datos inválidos' })
+    }
+
+    const { email, password } = parsed.data
+
+    const user = await db.query.users.findFirst({
+      where: eq(users.email, email.toLowerCase()),
+    })
+
+    if (!user || !user.passwordHash) {
+      return reply.status(401).send({ error: 'Email o contraseña incorrectos' })
+    }
+
+    const valid = await bcrypt.compare(password, user.passwordHash)
+    if (!valid) {
+      return reply.status(401).send({ error: 'Email o contraseña incorrectos' })
+    }
+
+    if (user.isBanned) {
+      return reply.status(403).send({ error: 'Cuenta suspendida', reason: user.banReason })
+    }
+
+    const token = app.jwt.sign({ userId: user.id, email: user.email })
+
+    return reply.send({
+      token,
+      user: { id: user.id, email: user.email, username: user.username, payoutAddress: user.payoutAddress },
+    })
+  })
+
+  // ── GET /auth/me ────────────────────────────────────────────────────
   app.get('/me', {
     preHandler: [app.authenticate],
   }, async (request, reply) => {
-    const { userId } = request.user
+    const { userId } = request.user as any
 
     const user = await db.query.users.findFirst({
       where: eq(users.id, userId),
@@ -94,15 +106,22 @@ export async function authRoutes(app: FastifyInstance) {
 
     if (!user) return reply.status(404).send({ error: 'Usuario no encontrado' })
 
-    return reply.send({ user })
+    return reply.send({
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      payoutAddress: user.payoutAddress,
+      refundAddress: user.refundAddress,
+      walletAddress: user.walletAddress,
+      reputationScore: user.reputationScore,
+      totalSales: user.totalSales,
+    })
   })
 
-  // POST /auth/logout — invalida el token (client-side en JWT, pero podemos blacklistear)
+  // ── POST /auth/logout ───────────────────────────────────────────────
   app.post('/logout', {
     preHandler: [app.authenticate],
-  }, async (request, reply) => {
-    // Con JWT stateless, el logout real ocurre en el cliente borrando el token.
-    // Opcionalmente, añadir el jti a una blacklist en Redis.
+  }, async (_request, reply) => {
     return reply.send({ ok: true })
   })
 }

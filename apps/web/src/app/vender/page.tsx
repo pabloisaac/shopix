@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAccount } from 'wagmi'
 import { useAuthStore } from '@/store/authStore'
+import { AuthModal } from '@/components/auth/AuthModal'
 import { api } from '@/lib/api'
 import { PriceDisplay } from '@/components/ui/PriceDisplay'
 import type { ProductCategory, ProductCondition } from '@shopix/shared'
@@ -32,9 +32,9 @@ const INITIAL: FormData = {
 
 export default function VenderPage() {
   const router = useRouter()
-  const { isConnected } = useAccount()
   const { token } = useAuthStore()
   const [step, setStep] = useState<Step>('info')
+  const [showAuthModal, setShowAuthModal] = useState(false)
   const [form, setForm] = useState<FormData>(INITIAL)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -57,17 +57,21 @@ export default function VenderPage() {
     }
   }
 
-  if (!isConnected || !token) {
+  if (!token) {
     return (
       <div className="max-w-xl mx-auto px-4 py-16 text-center space-y-4">
         <div className="text-5xl">🏪</div>
-        <h2 className="text-xl font-display font-bold text-shopix-text">Publicar en Shopix</h2>
-        <p className="text-shopix-muted text-sm max-w-sm mx-auto">
-          Para publicar productos necesitás conectar una wallet — es tu identidad como vendedor y la dirección donde podés recibir cobros.
+        <h2 className="text-xl font-display font-bold text-text-primary">Publicar en Shopix</h2>
+        <p className="text-text-muted text-sm max-w-sm mx-auto">
+          Para publicar productos necesitás una cuenta. Es gratis y no requiere wallet.
         </p>
-        <p className="text-xs text-shopix-faint">
-          ¿Solo querés comprar? No necesitás wallet — explorá el marketplace directamente.
+        <button onClick={() => setShowAuthModal(true)} className="btn-primary px-6 py-2.5">
+          Crear cuenta o ingresar →
+        </button>
+        <p className="text-xs text-text-faint">
+          ¿Solo querés comprar? No necesitás cuenta — explorá el marketplace directamente.
         </p>
+        {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
       </div>
     )
   }

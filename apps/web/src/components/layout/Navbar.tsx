@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { clsx } from 'clsx'
-import { WalletButton } from '@/components/blockchain/WalletButton'
+import { AuthButton } from '@/components/auth/AuthButton'
 import { useAuthStore } from '@/store/authStore'
 import { ShopixLogo } from '@/components/ui/ShopixLogo'
 
@@ -73,8 +73,7 @@ export function Navbar() {
             )}
           </nav>
 
-          {/* Wallet */}
-          <WalletButton />
+          <AuthButton />
         </div>
       </div>
 

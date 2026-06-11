@@ -1,16 +1,18 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 
-interface User {
+export interface AuthUser {
   id: string
-  walletAddress: string
+  email: string
   username: string | null
+  payoutAddress?: string | null
+  walletAddress?: string | null
 }
 
 interface AuthState {
   token: string | null
-  user: User | null
-  setAuth: (token: string, user: User) => void
+  user: AuthUser | null
+  setAuth: (token: string, user: AuthUser) => void
   clearAuth: () => void
 }
 
@@ -22,6 +24,6 @@ export const useAuthStore = create<AuthState>()(
       setAuth: (token, user) => set({ token, user }),
       clearAuth: () => set({ token: null, user: null }),
     }),
-    { name: 'shopix-auth', storage: createJSONStorage(() => sessionStorage) }
+    { name: 'shopix-auth', storage: createJSONStorage(() => localStorage) }
   )
 )

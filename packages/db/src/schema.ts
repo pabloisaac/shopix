@@ -109,7 +109,12 @@ export const users = pgTable(
   'users',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    walletAddress: text('wallet_address').notNull(),
+    // Auth clásica (email + password) — reemplaza SIWE
+    email: text('email'),
+    passwordHash: text('password_hash'),
+    emailVerified: boolean('email_verified').notNull().default(false),
+    // Wallet opcional (solo si el usuario quiere vincularla)
+    walletAddress: text('wallet_address'),
     username: text('username'),
     avatarIpfs: text('avatar_ipfs'),
     reputationScore: integer('reputation_score').notNull().default(0),
@@ -120,11 +125,13 @@ export const users = pgTable(
     riskLevel: userRiskLevelEnum('risk_level').notNull().default('clean'),
     isBanned: boolean('is_banned').notNull().default(false),
     banReason: text('ban_reason'),
-    payoutAddress: text('payout_address'), // dirección de cobro (puede ser Nexo, BingX, etc.)
+    payoutAddress: text('payout_address'),   // dirección de cobro (Nexo, BingX, etc.) — vendedor
+    refundAddress: text('refund_address'),   // dirección de reembolso — comprador
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
   },
   (t) => [
+    uniqueIndex('users_email_idx').on(t.email),
     uniqueIndex('users_wallet_address_idx').on(t.walletAddress),
     uniqueIndex('users_username_idx').on(t.username),
   ]
