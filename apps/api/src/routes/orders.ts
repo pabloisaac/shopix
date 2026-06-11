@@ -434,35 +434,7 @@ export async function orderRoutes(app: FastifyInstance) {
     return reply.send({ ok: true })
   })
 
-  // POST /orders/:id/confirm — comprador confirma recepción
-  app.post('/:id/confirm', {
-    preHandler: [app.authenticate],
-  }, async (request, reply) => {
-    const { id } = request.params as { id: string }
-    const { userId } = request.user
-
-    const schema = z.object({ txHash: z.string() })
-    const parsed = schema.safeParse(request.body)
-    if (!parsed.success) return reply.status(400).send({ error: 'txHash requerido' })
-
-    const order = await db.query.orders.findFirst({ where: eq(orders.id, id) })
-    if (!order) return reply.status(404).send({ error: 'Orden no encontrada' })
-    if (order.buyerId !== userId) return reply.status(403).send({ error: 'Solo el comprador' })
-
-    await db.update(orders)
-      .set({ status: 'completed', txHashComplete: parsed.data.txHash, updatedAt: new Date() })
-      .where(eq(orders.id, id))
-
-    await db.insert(orderEvents).values({
-      orderId: id,
-      eventType: 'completed',
-      actorAddress: (await db.query.users.findFirst({ where: eq(users.id, userId) }))?.walletAddress || '',
-      metadata: { txHash: parsed.data.txHash },
-      txHash: parsed.data.txHash,
-    })
-
-    return reply.send({ ok: true })
-  })
+  // POST /orders/:id/confirm — comprador confirma recepción (legacy con wallet, usa txHash)
 
   // GET /orders/:id/messages — hilo de mensajes estructurados
   app.get('/:id/messages', {
