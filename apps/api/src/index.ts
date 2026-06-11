@@ -43,8 +43,20 @@ declare module 'fastify' {
 async function main() {
   // ─── Core plugins (sin encapsulación) ────────────────────────────
 
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    process.env.NEXT_PUBLIC_APP_URL,
+    process.env.APP_URL,
+  ].filter(Boolean) as string[]
+
   await app.register(cors, {
-    origin: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+    origin: (origin, cb) => {
+      // Permitir requests sin origin (ej: Railway health checks, curl)
+      if (!origin) return cb(null, true)
+      if (allowedOrigins.some(o => origin.startsWith(o))) return cb(null, true)
+      cb(new Error(`CORS: origin ${origin} not allowed`), false)
+    },
     credentials: true,
   })
 
