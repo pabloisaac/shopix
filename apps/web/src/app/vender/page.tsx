@@ -59,8 +59,15 @@ export default function VenderPage() {
 
   if (!isConnected || !token) {
     return (
-      <div className="max-w-xl mx-auto px-4 py-16 text-center">
-        <p className="text-shopix-muted">Conectá tu wallet para publicar productos</p>
+      <div className="max-w-xl mx-auto px-4 py-16 text-center space-y-4">
+        <div className="text-5xl">🏪</div>
+        <h2 className="text-xl font-display font-bold text-shopix-text">Publicar en Shopix</h2>
+        <p className="text-shopix-muted text-sm max-w-sm mx-auto">
+          Para publicar productos necesitás conectar una wallet — es tu identidad como vendedor y la dirección donde podés recibir cobros.
+        </p>
+        <p className="text-xs text-shopix-faint">
+          ¿Solo querés comprar? No necesitás wallet — explorá el marketplace directamente.
+        </p>
       </div>
     )
   }

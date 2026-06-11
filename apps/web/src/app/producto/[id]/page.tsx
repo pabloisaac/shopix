@@ -155,11 +155,7 @@ export default function ProductDetailPage() {
             {/* CTA */}
             {!isOwnProduct && product.stock > 0 && (
               <div className="space-y-3">
-                {!isConnected ? (
-                  <p className="text-sm text-shopix-muted text-center py-3 bg-bg-elevated rounded-xl border border-bg-border">
-                    Conectá tu wallet para comprar
-                  </p>
-                ) : (product.seller as any)?.riskLevel === 'banned' ? (
+                {(product.seller as any)?.riskLevel === 'banned' ? (
                   <div className="text-center py-3 text-sm text-red-400 bg-red-500/5 border border-red-500/20 rounded-xl">
                     🚫 No es posible comprar — vendedor suspendido
                   </div>

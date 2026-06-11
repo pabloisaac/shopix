@@ -21,7 +21,7 @@ export function WalletButton() {
         if (!connected) {
           return (
             <button onClick={openConnectModal} className="btn-primary text-sm py-2 px-4">
-              Conectar wallet
+              Acceso vendedor
             </button>
           )
         }
@@ -33,7 +33,7 @@ export function WalletButton() {
               disabled={isLoading}
               className="btn-primary text-sm py-2 px-4"
             >
-              {isLoading ? 'Firmando…' : 'Iniciar sesión'}
+              {isLoading ? 'Firmando…' : 'Acceso vendedor'}
             </button>
           )
         }
