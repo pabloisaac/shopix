@@ -18,6 +18,7 @@ import { disputeRoutes } from './routes/disputes'
 import { userRoutes } from './routes/users'
 import { webhookRoutes } from './routes/webhooks'
 import { devRoutes } from './routes/dev'
+import { testnetRoutes } from './routes/testnet'
 import { scheduleAutorelease } from './jobs/autorelease.job'
 import { scheduleTracking } from './jobs/tracking.job'
 import { scheduleKlerosSync } from './jobs/kleros-sync.job'
@@ -117,6 +118,7 @@ async function main() {
   await app.register(userRoutes, { prefix: '/users' })
   await app.register(webhookRoutes, { prefix: '/webhooks' })
   await app.register(devRoutes, { prefix: '/dev' })
+  await app.register(testnetRoutes, { prefix: '/testnet' })
 
   app.get('/health', async () => ({ ok: true, timestamp: new Date().toISOString() }))
 
