@@ -1,6 +1,6 @@
 import { eq, sql } from 'drizzle-orm'
 import { db } from '../lib/db'
-import { users } from '@cripex/db'
+import { users } from '@shopix/db'
 
 export type RiskLevel = 'clean' | 'warning' | 'risky' | 'banned'
 

@@ -8,7 +8,7 @@ dotenv.config({ path: path.resolve(__dirname, '../../../.env') })
 
 async function main() {
   const connectionString = process.env.DATABASE_URL ||
-    'postgresql://postgres:postgres@localhost:5432/cripex'
+    'postgresql://postgres:postgres@localhost:5432/shopix'
 
   const migrationClient = postgres(connectionString, { max: 1 })
   const db = drizzle(migrationClient)

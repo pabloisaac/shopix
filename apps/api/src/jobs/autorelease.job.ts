@@ -1,7 +1,7 @@
 import { Queue, Worker } from 'bullmq'
 import { lt, eq } from 'drizzle-orm'
 import { db } from '../lib/db'
-import { orders, orderEvents } from '@cripex/db'
+import { orders, orderEvents } from '@shopix/db'
 import { executeAutoRelease } from '../services/blockchain.service'
 import { redis } from '../lib/redis'
 

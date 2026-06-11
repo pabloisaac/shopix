@@ -139,7 +139,7 @@ export function CheckoutModal({ product, onClose, onSuccess }: CheckoutModalProp
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-bg-border sticky top-0 bg-bg-elevated z-10">
           <h2 className="font-display font-semibold text-lg">Completar compra</h2>
-          <button onClick={onClose} className="text-cripex-faint hover:text-cripex-text transition-colors">
+          <button onClick={onClose} className="text-shopix-faint hover:text-shopix-text transition-colors">
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -149,8 +149,8 @@ export function CheckoutModal({ product, onClose, onSuccess }: CheckoutModalProp
         <div className="p-6 space-y-4">
           {/* Producto */}
           <div className="bg-bg-secondary rounded-xl p-4">
-            <p className="text-sm text-cripex-muted mb-1">Comprando</p>
-            <p className="font-display font-semibold text-cripex-text">{product.title}</p>
+            <p className="text-sm text-shopix-muted mb-1">Comprando</p>
+            <p className="font-display font-semibold text-shopix-text">{product.title}</p>
             <div className="mt-2">
               <PriceDisplay amountUsdt={product.priceUsdt} size="lg" />
             </div>
@@ -164,14 +164,14 @@ export function CheckoutModal({ product, onClose, onSuccess }: CheckoutModalProp
                   Saldo insuficiente. Tenés {Number(balance).toFixed(2)} USDT y necesitás {product.priceUsdt} USDT.
                 </div>
               )}
-              <div className="bg-bg-secondary rounded-xl p-4 text-sm text-cripex-muted space-y-2">
+              <div className="bg-bg-secondary rounded-xl p-4 text-sm text-shopix-muted space-y-2">
                 <div className="flex justify-between">
                   <span>Tu saldo USDT</span>
-                  <span className="font-mono text-cripex-text">{Number(balance).toFixed(2)} USDT</span>
+                  <span className="font-mono text-shopix-text">{Number(balance).toFixed(2)} USDT</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Fee de plataforma (1.5%)</span>
-                  <span className="font-mono text-cripex-text">
+                  <span className="font-mono text-shopix-text">
                     {(parseFloat(product.priceUsdt) * 0.015).toFixed(2)} USDT
                   </span>
                 </div>
@@ -200,7 +200,7 @@ export function CheckoutModal({ product, onClose, onSuccess }: CheckoutModalProp
                   {savedAddresses.length > 0 && (
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <p className="text-xs text-cripex-muted uppercase tracking-wide">Guardadas</p>
+                        <p className="text-xs text-shopix-muted uppercase tracking-wide">Guardadas</p>
                         <Link
                           href="/mis-direcciones"
                           target="_blank"
@@ -224,7 +224,7 @@ export function CheckoutModal({ product, onClose, onSuccess }: CheckoutModalProp
                             <span className={`mt-0.5 w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center ${
                               shippingMode === 'saved' && selectedAddressId === addr.id
                                 ? 'border-accent'
-                                : 'border-cripex-muted'
+                                : 'border-shopix-muted'
                             }`}>
                               {shippingMode === 'saved' && selectedAddressId === addr.id && (
                                 <span className="w-2 h-2 rounded-full bg-accent block" />
@@ -237,8 +237,8 @@ export function CheckoutModal({ product, onClose, onSuccess }: CheckoutModalProp
                                   <span className="text-xs text-accent">(predeterminada)</span>
                                 )}
                               </div>
-                              <p className="text-xs text-cripex-muted">{addr.name} — {addr.street}</p>
-                              <p className="text-xs text-cripex-muted">{addr.city}, {addr.province} CP {addr.zip}</p>
+                              <p className="text-xs text-shopix-muted">{addr.name} — {addr.street}</p>
+                              <p className="text-xs text-shopix-muted">{addr.city}, {addr.province} CP {addr.zip}</p>
                             </div>
                           </div>
                         </button>
@@ -256,11 +256,11 @@ export function CheckoutModal({ product, onClose, onSuccess }: CheckoutModalProp
                       >
                         <div className="flex items-center gap-2">
                           <span className={`w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center ${
-                            shippingMode === 'new' ? 'border-accent' : 'border-cripex-muted'
+                            shippingMode === 'new' ? 'border-accent' : 'border-shopix-muted'
                           }`}>
                             {shippingMode === 'new' && <span className="w-2 h-2 rounded-full bg-accent block" />}
                           </span>
-                          <span className="text-sm text-cripex-muted">Ingresar nueva dirección</span>
+                          <span className="text-sm text-shopix-muted">Ingresar nueva dirección</span>
                         </div>
                       </button>
                     </div>
@@ -271,7 +271,7 @@ export function CheckoutModal({ product, onClose, onSuccess }: CheckoutModalProp
                     <div className="space-y-3">
                       {savedAddresses.length === 0 && (
                         <div className="flex items-center justify-between">
-                          <p className="text-xs text-cripex-muted">No tenés direcciones guardadas.</p>
+                          <p className="text-xs text-shopix-muted">No tenés direcciones guardadas.</p>
                           <Link href="/mis-direcciones" target="_blank" className="text-xs text-accent hover:underline">
                             Agregar →
                           </Link>
@@ -325,7 +325,7 @@ export function CheckoutModal({ product, onClose, onSuccess }: CheckoutModalProp
             </div>
           )}
 
-          <p className="text-xs text-cripex-faint text-center">
+          <p className="text-xs text-shopix-faint text-center">
             Los fondos quedan en escrow hasta que confirmes la recepción del producto o expire el timeout.
           </p>
         </div>

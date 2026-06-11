@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify'
 import { eq, ilike, and } from 'drizzle-orm'
 import { z } from 'zod'
 import { db } from '../lib/db'
-import { users, products, reviews, userAddresses } from '@cripex/db'
+import { users, products, reviews, userAddresses } from '@shopix/db'
 
 const addressSchema = z.object({
   label: z.string().min(1).max(30).default('Casa'),

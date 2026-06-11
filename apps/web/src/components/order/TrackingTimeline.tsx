@@ -44,16 +44,16 @@ export function TrackingTimeline({ events }: TrackingTimelineProps) {
             <p
               className={clsx(
                 'text-sm font-medium font-display',
-                event.completed || event.active ? 'text-cripex-text' : 'text-cripex-faint'
+                event.completed || event.active ? 'text-shopix-text' : 'text-shopix-faint'
               )}
             >
               {event.label}
             </p>
             {event.description && (
-              <p className="text-xs text-cripex-muted mt-0.5">{event.description}</p>
+              <p className="text-xs text-shopix-muted mt-0.5">{event.description}</p>
             )}
             {event.date && (
-              <p className="text-xs text-cripex-faint mt-0.5">
+              <p className="text-xs text-shopix-faint mt-0.5">
                 {new Date(event.date).toLocaleDateString('es-AR', {
                   day: '2-digit',
                   month: 'short',

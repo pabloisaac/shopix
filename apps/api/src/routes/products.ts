@@ -2,10 +2,10 @@ import { FastifyInstance } from 'fastify'
 import { eq, and, gte, lte, ilike, desc, asc, count } from 'drizzle-orm'
 import { z } from 'zod'
 import { db } from '../lib/db'
-import { products, users } from '@cripex/db'
+import { products, users } from '@shopix/db'
 import { uploadImage, uploadProductMetadata } from '../services/ipfs.service'
 import { assertCanOperate } from '../services/reputation.service'
-import type { ProductCategory, ProductCondition } from '@cripex/shared'
+import type { ProductCategory, ProductCondition } from '@shopix/shared'
 
 export async function productRoutes(app: FastifyInstance) {
   // GET /products — listado con filtros

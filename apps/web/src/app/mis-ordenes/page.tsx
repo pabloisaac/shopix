@@ -8,7 +8,7 @@ import { useAuthStore } from '@/store/authStore'
 import { Badge, StatusDot } from '@/components/ui/Badge'
 import { PriceDisplay } from '@/components/ui/PriceDisplay'
 import { GlowCard } from '@/components/ui/GlowCard'
-import type { OrderStatus } from '@cripex/shared'
+import type { OrderStatus } from '@shopix/shared'
 
 type Tab = 'buying' | 'selling'
 
@@ -90,14 +90,14 @@ export default function MisOrdenesPage() {
   if (!isConnected || !token) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-        <p className="text-cripex-muted mb-4">Conectá tu wallet para ver tus órdenes</p>
+        <p className="text-shopix-muted mb-4">Conectá tu wallet para ver tus órdenes</p>
       </div>
     )
   }
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
-      <h1 className="text-2xl font-display font-bold text-cripex-text mb-6">Mis Órdenes</h1>
+      <h1 className="text-2xl font-display font-bold text-shopix-text mb-6">Mis Órdenes</h1>
 
       {/* Tabs */}
       <div className="flex gap-1 bg-bg-elevated border border-bg-border rounded-xl p-1 mb-6 w-fit">
@@ -111,7 +111,7 @@ export default function MisOrdenesPage() {
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
               tab === t.key
                 ? 'bg-accent text-bg-primary'
-                : 'text-cripex-muted hover:text-cripex-text'
+                : 'text-shopix-muted hover:text-shopix-text'
             }`}
           >
             {t.label}
@@ -126,7 +126,7 @@ export default function MisOrdenesPage() {
           ))}
         </div>
       ) : orders.length === 0 ? (
-        <div className="text-center py-16 text-cripex-faint">
+        <div className="text-center py-16 text-shopix-faint">
           <p>No tenés {tab === 'buying' ? 'compras' : 'ventas'} aún</p>
           {tab === 'buying' && (
             <Link href="/marketplace" className="btn-primary mt-4 inline-flex">
@@ -144,20 +144,20 @@ export default function MisOrdenesPage() {
                     <div className="flex items-center gap-2 mb-1">
                       <StatusDot status={order.status as OrderStatus} />
                       <Badge status={order.status as OrderStatus} />
-                      <span className="text-xs text-cripex-faint font-mono">
+                      <span className="text-xs text-shopix-faint font-mono">
                         {order.id.slice(0, 8)}…
                       </span>
                     </div>
-                    <p className="font-medium text-cripex-text truncate">
+                    <p className="font-medium text-shopix-text truncate">
                       {order.product?.title || 'Producto'}
                     </p>
                     {order.trackingNumber && (
-                      <p className="text-xs text-cripex-muted mt-1">
+                      <p className="text-xs text-shopix-muted mt-1">
                         Tracking: <span className="font-mono">{order.trackingNumber}</span>
                         {' '}({order.trackingCarrier})
                       </p>
                     )}
-                    <p className="text-xs text-cripex-faint mt-1">
+                    <p className="text-xs text-shopix-faint mt-1">
                       {new Date(order.createdAt).toLocaleDateString('es-AR')}
                     </p>
                     {order.status === 'pending_payment' && tab === 'buying' && (
@@ -176,7 +176,7 @@ export default function MisOrdenesPage() {
 
                   <div className="flex flex-col items-end gap-2">
                     <PriceDisplay amountUsdt={order.amountUsdt} size="md" showArs={false} />
-                    <span className="text-xs text-cripex-faint group-hover:text-accent transition-colors">
+                    <span className="text-xs text-shopix-faint group-hover:text-accent transition-colors">
                       Ver detalle →
                     </span>
                   </div>

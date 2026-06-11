@@ -24,7 +24,7 @@ export default async function PerfilPage({ params }: PageProps) {
 
   if (!user) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-16 text-center text-cripex-faint">
+      <div className="max-w-2xl mx-auto px-4 py-16 text-center text-shopix-faint">
         Usuario no encontrado
       </div>
     )
@@ -43,7 +43,7 @@ export default async function PerfilPage({ params }: PageProps) {
             {(user.username || user.walletAddress)[0].toUpperCase()}
           </div>
           <div>
-            <h1 className="text-xl font-display font-bold text-cripex-text">
+            <h1 className="text-xl font-display font-bold text-shopix-text">
               {user.username || 'Anónimo'}
             </h1>
             <AddressTag address={user.walletAddress} className="mt-1" />
@@ -58,7 +58,7 @@ export default async function PerfilPage({ params }: PageProps) {
           ].map((stat) => (
             <div key={stat.label} className="text-center bg-bg-secondary rounded-xl p-3">
               <p className="text-lg font-display font-bold text-accent">{stat.value}</p>
-              <p className="text-xs text-cripex-faint mt-1">{stat.label}</p>
+              <p className="text-xs text-shopix-faint mt-1">{stat.label}</p>
             </div>
           ))}
         </div>
@@ -67,7 +67,7 @@ export default async function PerfilPage({ params }: PageProps) {
       {/* Productos activos */}
       {user.products?.length > 0 && (
         <div>
-          <h2 className="font-display font-semibold text-cripex-text mb-4">
+          <h2 className="font-display font-semibold text-shopix-text mb-4">
             Productos ({user.products.length})
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -81,7 +81,7 @@ export default async function PerfilPage({ params }: PageProps) {
       {/* Reseñas */}
       {user.reviewsReceived?.length > 0 && (
         <div>
-          <h2 className="font-display font-semibold text-cripex-text mb-4">
+          <h2 className="font-display font-semibold text-shopix-text mb-4">
             Reseñas ({user.reviewsReceived.length})
           </h2>
           <div className="space-y-3">
@@ -92,8 +92,8 @@ export default async function PerfilPage({ params }: PageProps) {
                     {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm text-cripex-text">{review.comment || 'Sin comentario'}</p>
-                    <p className="text-xs text-cripex-faint mt-1">
+                    <p className="text-sm text-shopix-text">{review.comment || 'Sin comentario'}</p>
+                    <p className="text-xs text-shopix-faint mt-1">
                       Por {review.reviewer?.username || review.reviewer?.walletAddress?.slice(0, 10) + '…'} ·{' '}
                       {new Date(review.createdAt).toLocaleDateString('es-AR')}
                     </p>

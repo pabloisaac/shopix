@@ -1,5 +1,5 @@
 {
-  "name": "@cripex/api",
+  "name": "@shopix/api",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -9,8 +9,8 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@cripex/db": "workspace:*",
-    "@cripex/shared": "workspace:*",
+    "@shopix/db": "workspace:*",
+    "@shopix/shared": "workspace:*",
     "@fastify/auth": "^5.0.4",
     "@fastify/cors": "^10.0.1",
     "@fastify/jwt": "^9.0.1",

@@ -4,7 +4,7 @@ import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { db } from '../lib/db'
 import { redis } from '../lib/redis'
-import { users } from '@cripex/db'
+import { users } from '@shopix/db'
 import { randomBytes } from 'crypto'
 
 const NONCE_TTL = 300 // 5 minutos

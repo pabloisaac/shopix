@@ -136,7 +136,7 @@ export default function MisDireccionesPage() {
   if (!isConnected) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-cripex-muted">Conectá tu wallet para ver tus direcciones.</p>
+        <p className="text-shopix-muted">Conectá tu wallet para ver tus direcciones.</p>
       </div>
     )
   }
@@ -146,7 +146,7 @@ export default function MisDireccionesPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-text-primary">Mis Direcciones</h1>
-          <p className="text-cripex-muted text-sm mt-1">Gestioná tus direcciones de envío</p>
+          <p className="text-shopix-muted text-sm mt-1">Gestioná tus direcciones de envío</p>
         </div>
         {!showForm && (
           <button onClick={handleNew} className="btn-primary px-4 py-2 text-sm">
@@ -170,7 +170,7 @@ export default function MisDireccionesPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Label */}
             <div>
-              <label className="block text-sm text-cripex-muted mb-1">Etiqueta</label>
+              <label className="block text-sm text-shopix-muted mb-1">Etiqueta</label>
               <div className="flex gap-2 flex-wrap">
                 {['Casa', 'Trabajo', 'Otro'].map(opt => (
                   <button
@@ -180,7 +180,7 @@ export default function MisDireccionesPage() {
                     className={`px-3 py-1 rounded-full text-sm border transition-colors ${
                       form.label === opt
                         ? 'border-accent bg-accent/10 text-accent'
-                        : 'border-border text-cripex-muted hover:border-accent/50'
+                        : 'border-border text-shopix-muted hover:border-accent/50'
                     }`}
                   >
                     {opt}
@@ -196,7 +196,7 @@ export default function MisDireccionesPage() {
 
             {/* Nombre completo */}
             <div>
-              <label className="block text-sm text-cripex-muted mb-1">Nombre completo del destinatario *</label>
+              <label className="block text-sm text-shopix-muted mb-1">Nombre completo del destinatario *</label>
               <input
                 type="text"
                 className="input w-full"
@@ -209,7 +209,7 @@ export default function MisDireccionesPage() {
 
             {/* Calle */}
             <div>
-              <label className="block text-sm text-cripex-muted mb-1">Calle y número *</label>
+              <label className="block text-sm text-shopix-muted mb-1">Calle y número *</label>
               <input
                 type="text"
                 className="input w-full"
@@ -223,7 +223,7 @@ export default function MisDireccionesPage() {
             {/* Ciudad y Código Postal */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm text-cripex-muted mb-1">Ciudad *</label>
+                <label className="block text-sm text-shopix-muted mb-1">Ciudad *</label>
                 <input
                   type="text"
                   className="input w-full"
@@ -234,7 +234,7 @@ export default function MisDireccionesPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm text-cripex-muted mb-1">Código postal *</label>
+                <label className="block text-sm text-shopix-muted mb-1">Código postal *</label>
                 <input
                   type="text"
                   className="input w-full"
@@ -248,7 +248,7 @@ export default function MisDireccionesPage() {
 
             {/* Provincia */}
             <div>
-              <label className="block text-sm text-cripex-muted mb-1">Provincia *</label>
+              <label className="block text-sm text-shopix-muted mb-1">Provincia *</label>
               <select
                 className="input w-full"
                 value={form.province}
@@ -264,7 +264,7 @@ export default function MisDireccionesPage() {
 
             {/* Teléfono */}
             <div>
-              <label className="block text-sm text-cripex-muted mb-1">Teléfono de contacto</label>
+              <label className="block text-sm text-shopix-muted mb-1">Teléfono de contacto</label>
               <input
                 type="tel"
                 className="input w-full"
@@ -311,8 +311,8 @@ export default function MisDireccionesPage() {
       ) : addresses.length === 0 ? (
         <div className="text-center py-16">
           <div className="text-4xl mb-3">📦</div>
-          <p className="text-cripex-muted">No tenés direcciones guardadas.</p>
-          <p className="text-cripex-muted text-sm mt-1">Agregá una para agilizar tus compras.</p>
+          <p className="text-shopix-muted">No tenés direcciones guardadas.</p>
+          <p className="text-shopix-muted text-sm mt-1">Agregá una para agilizar tus compras.</p>
           {!showForm && (
             <button onClick={handleNew} className="btn-primary mt-4 px-6 py-2">
               Agregar primera dirección
@@ -337,12 +337,12 @@ export default function MisDireccionesPage() {
                     )}
                   </div>
                   <p className="text-sm text-text-primary font-medium">{addr.name}</p>
-                  <p className="text-sm text-cripex-muted">{addr.street}</p>
-                  <p className="text-sm text-cripex-muted">
+                  <p className="text-sm text-shopix-muted">{addr.street}</p>
+                  <p className="text-sm text-shopix-muted">
                     {addr.city}, {addr.province} — CP {addr.zip}
                   </p>
                   {addr.phone && (
-                    <p className="text-sm text-cripex-muted mt-0.5">📞 {addr.phone}</p>
+                    <p className="text-sm text-shopix-muted mt-0.5">📞 {addr.phone}</p>
                   )}
                 </div>
 
@@ -357,7 +357,7 @@ export default function MisDireccionesPage() {
                   )}
                   <button
                     onClick={() => handleEdit(addr)}
-                    className="text-xs text-cripex-muted hover:text-text-primary whitespace-nowrap"
+                    className="text-xs text-shopix-muted hover:text-text-primary whitespace-nowrap"
                   >
                     Editar
                   </button>

@@ -113,13 +113,13 @@ export default function DevPage() {
           <span className="px-2 py-0.5 rounded text-xs bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 font-mono">DEV ONLY</span>
           <h1 className="text-2xl font-bold text-text-primary">Panel de Testing</h1>
         </div>
-        <p className="text-cripex-muted text-sm">Herramientas para simular el flujo completo comprador ↔ vendedor en Hardhat local.</p>
+        <p className="text-shopix-muted text-sm">Herramientas para simular el flujo completo comprador ↔ vendedor en Hardhat local.</p>
       </div>
 
       {/* Contratos */}
       {status && (
         <div className="bg-bg-elevated border border-border rounded-2xl p-4">
-          <h2 className="text-sm font-semibold text-cripex-muted uppercase tracking-wide mb-3">Contratos desplegados</h2>
+          <h2 className="text-sm font-semibold text-shopix-muted uppercase tracking-wide mb-3">Contratos desplegados</h2>
           <div className="space-y-2 font-mono text-xs">
             {[
               { label: 'MarketplaceEscrow', value: status.contractAddress },
@@ -127,7 +127,7 @@ export default function DevPage() {
               { label: 'MockKleros', value: status.mockKlerosAddress },
             ].map(({ label, value }) => (
               <div key={label} className="flex items-center gap-2">
-                <span className="text-cripex-muted w-40 shrink-0">{label}</span>
+                <span className="text-shopix-muted w-40 shrink-0">{label}</span>
                 <span className="text-accent truncate">{value}</span>
               </div>
             ))}
@@ -137,7 +137,7 @@ export default function DevPage() {
 
       {/* Guía de flujo */}
       <div className="bg-bg-elevated border border-border rounded-2xl p-5">
-        <h2 className="text-sm font-semibold text-cripex-muted uppercase tracking-wide mb-4">Flujo de prueba</h2>
+        <h2 className="text-sm font-semibold text-shopix-muted uppercase tracking-wide mb-4">Flujo de prueba</h2>
         <ol className="space-y-2">
           {STEP_LABELS.map(step => (
             <li key={step.n} className="flex items-start gap-3 text-sm">
@@ -155,7 +155,7 @@ export default function DevPage() {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-text-primary">Cuentas Hardhat</h2>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-cripex-muted">Mint amount:</span>
+            <span className="text-xs text-shopix-muted">Mint amount:</span>
             <select
               className="input text-xs py-1 px-2 w-32"
               value={mintAmount}
@@ -193,21 +193,21 @@ export default function DevPage() {
                           </span>
                         )}
                         {acc.hasUser && (
-                          <span className="text-xs text-cripex-muted">@{acc.username}</span>
+                          <span className="text-xs text-shopix-muted">@{acc.username}</span>
                         )}
                       </div>
-                      <p className="font-mono text-xs text-cripex-muted mt-1">{acc.address}</p>
+                      <p className="font-mono text-xs text-shopix-muted mt-1">{acc.address}</p>
                     </div>
                     <div className="text-right shrink-0">
                       <p className="text-sm font-bold text-accent">{acc.usdtBalance} USDT</p>
-                      <p className="text-xs text-cripex-muted">{acc.ethBalance} ETH</p>
+                      <p className="text-xs text-shopix-muted">{acc.ethBalance} ETH</p>
                     </div>
                   </div>
 
                   {/* Private key */}
                   <div className="bg-bg-secondary rounded-xl p-3 mb-3">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-cripex-muted">Clave privada (importar en MetaMask)</span>
+                      <span className="text-xs text-shopix-muted">Clave privada (importar en MetaMask)</span>
                       <button
                         onClick={() => copyToClipboard(acc.privateKey, acc.address)}
                         className="text-xs text-accent hover:underline"
@@ -215,7 +215,7 @@ export default function DevPage() {
                         {copied === acc.address ? '✓ Copiado' : 'Copiar'}
                       </button>
                     </div>
-                    <p className="font-mono text-xs text-cripex-faint break-all">{acc.privateKey}</p>
+                    <p className="font-mono text-xs text-shopix-faint break-all">{acc.privateKey}</p>
                   </div>
 
                   {/* Acciones */}
@@ -240,7 +240,7 @@ export default function DevPage() {
 
                     <button
                       onClick={() => copyToClipboard(acc.address, `addr_${acc.address}`)}
-                      className="text-xs text-cripex-muted hover:text-text-primary border border-border rounded-lg px-3 py-1.5"
+                      className="text-xs text-shopix-muted hover:text-text-primary border border-border rounded-lg px-3 py-1.5"
                     >
                       {copied === `addr_${acc.address}` ? '✓' : 'Copiar dirección'}
                     </button>
@@ -267,7 +267,7 @@ export default function DevPage() {
       {/* Instrucciones MetaMask */}
       <div className="bg-yellow-500/5 border border-yellow-500/20 rounded-2xl p-5">
         <h2 className="text-sm font-semibold text-yellow-400 mb-3">📋 Cómo importar cuentas en MetaMask</h2>
-        <ol className="space-y-2 text-sm text-cripex-muted list-decimal list-inside">
+        <ol className="space-y-2 text-sm text-shopix-muted list-decimal list-inside">
           <li>Abrí MetaMask → menú de cuentas → <strong className="text-text-primary">Agregar cuenta</strong> → Importar cuenta</li>
           <li>Pegá la clave privada de la cuenta que querés (botón "Copiar" arriba)</li>
           <li>Repetí el proceso para el vendedor y el comprador</li>

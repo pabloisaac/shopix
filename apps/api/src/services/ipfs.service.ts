@@ -1,6 +1,6 @@
 import PinataClient from '@pinata/sdk'
 import { Readable } from 'stream'
-import type { EvidencePackage, MetaEvidence } from '@cripex/shared'
+import type { EvidencePackage, MetaEvidence } from '@shopix/shared'
 
 const pinata = new PinataClient({
   pinataApiKey: process.env.PINATA_API_KEY || '',

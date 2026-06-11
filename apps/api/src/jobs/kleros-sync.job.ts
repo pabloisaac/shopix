@@ -1,7 +1,7 @@
 import { Queue, Worker } from 'bullmq'
 import { eq } from 'drizzle-orm'
 import { db } from '../lib/db'
-import { disputes, orders } from '@cripex/db'
+import { disputes, orders } from '@shopix/db'
 import { publicClient } from '../lib/viem'
 import { redis } from '../lib/redis'
 import { parseAbi } from 'viem'

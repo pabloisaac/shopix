@@ -52,7 +52,7 @@ export function TxStatus({ hash, onSuccess }: TxStatusProps) {
           href={`https://polygonscan.com/tx/${hash}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="ml-auto text-cripex-faint hover:text-cripex-muted text-xs underline"
+          className="ml-auto text-shopix-faint hover:text-shopix-muted text-xs underline"
         >
           Ver tx
         </a>

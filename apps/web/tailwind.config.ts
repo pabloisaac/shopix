@@ -42,7 +42,7 @@ const config: Config = {
           faint:     '#94A3B8',
         },
         // Compatibilidad con clases antiguas
-        cripex: {
+        shopix: {
           text:  '#0F172A',
           muted: '#64748B',
           faint: '#94A3B8',

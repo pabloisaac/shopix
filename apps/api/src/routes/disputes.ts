@@ -3,11 +3,11 @@ import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { parseAbi } from 'viem'
 import { db } from '../lib/db'
-import { orders, disputes, orderEvents, users } from '@cripex/db'
+import { orders, disputes, orderEvents, users } from '@shopix/db'
 import { uploadEvidence, uploadMetaEvidence } from '../services/ipfs.service'
 import { publicClient, getAdminWalletClient } from '../lib/viem'
 import { recordDisputeLost, recordDisputeWon } from '../services/reputation.service'
-import type { EvidencePackage, MetaEvidence } from '@cripex/shared'
+import type { EvidencePackage, MetaEvidence } from '@shopix/shared'
 
 const MOCK_KLEROS_ABI = parseAbi([
   'function giveRuling(uint256 disputeId, uint256 ruling) external',

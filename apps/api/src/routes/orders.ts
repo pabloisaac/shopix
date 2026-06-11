@@ -3,10 +3,10 @@ import { eq, and } from 'drizzle-orm'
 import { z } from 'zod'
 import { randomBytes } from 'crypto'
 import { db } from '../lib/db'
-import { orders, orderEvents, orderMessages, products, users } from '@cripex/db'
+import { orders, orderEvents, orderMessages, products, users } from '@shopix/db'
 import { getTrackingStatus } from '../services/tracking.service'
 import { assertCanOperate } from '../services/reputation.service'
-import type { TrackingCarrier, ShippingAddress } from '@cripex/shared'
+import type { TrackingCarrier, ShippingAddress } from '@shopix/shared'
 
 const SHIPPING_DEADLINE_HOURS = 48
 const SHIPPING_WARNING_HOURS = 6 // warn if < 6h remain

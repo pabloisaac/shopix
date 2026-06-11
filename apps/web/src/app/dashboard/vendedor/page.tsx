@@ -9,7 +9,7 @@ import { GlowCard } from '@/components/ui/GlowCard'
 import { Badge } from '@/components/ui/Badge'
 import { PriceDisplay } from '@/components/ui/PriceDisplay'
 import { useUSDTBalance } from '@/hooks/useUSDTBalance'
-import type { OrderStatus } from '@cripex/shared'
+import type { OrderStatus } from '@shopix/shared'
 
 export default function DashboardVendedorPage() {
   const { isConnected } = useAccount()
@@ -28,7 +28,7 @@ export default function DashboardVendedorPage() {
 
   if (!isConnected || !token) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-16 text-center text-cripex-faint">
+      <div className="max-w-2xl mx-auto px-4 py-16 text-center text-shopix-faint">
         Conectá tu wallet para ver el dashboard
       </div>
     )
@@ -45,7 +45,7 @@ export default function DashboardVendedorPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-display font-bold text-cripex-text">Dashboard vendedor</h1>
+        <h1 className="text-2xl font-display font-bold text-shopix-text">Dashboard vendedor</h1>
         <Link href="/vender" className="btn-primary text-sm py-2 px-4">
           + Publicar
         </Link>
@@ -60,10 +60,10 @@ export default function DashboardVendedorPage() {
           { label: 'Completadas', value: String(completedCount), accent: false },
         ].map((metric) => (
           <GlowCard key={metric.label} className="p-4 text-center">
-            <p className={`text-xl font-display font-bold ${metric.accent ? 'text-accent' : 'text-cripex-text'}`}>
+            <p className={`text-xl font-display font-bold ${metric.accent ? 'text-accent' : 'text-shopix-text'}`}>
               {metric.value}
             </p>
-            <p className="text-xs text-cripex-faint mt-1">{metric.label}</p>
+            <p className="text-xs text-shopix-faint mt-1">{metric.label}</p>
           </GlowCard>
         ))}
       </div>
@@ -71,15 +71,15 @@ export default function DashboardVendedorPage() {
       {/* Pendientes de despacho */}
       {pendingDispatch.length > 0 && (
         <div>
-          <h2 className="font-display font-semibold text-cripex-text mb-3">
+          <h2 className="font-display font-semibold text-shopix-text mb-3">
             ⚡ Pendientes de despacho ({pendingDispatch.length})
           </h2>
           <div className="space-y-2">
             {pendingDispatch.map((order) => (
               <GlowCard key={order.id} className="p-4 flex items-center justify-between gap-4">
                 <div>
-                  <p className="font-medium text-cripex-text text-sm">{order.product?.title}</p>
-                  <p className="text-xs text-cripex-faint">
+                  <p className="font-medium text-shopix-text text-sm">{order.product?.title}</p>
+                  <p className="text-xs text-shopix-faint">
                     Comprador: {order.buyer?.username || order.buyer?.walletAddress?.slice(0, 10) + '…'}
                   </p>
                   <p className="text-xs text-orange-400 mt-0.5">
@@ -103,7 +103,7 @@ export default function DashboardVendedorPage() {
 
       {/* Historial de órdenes */}
       <div>
-        <h2 className="font-display font-semibold text-cripex-text mb-3">Historial de ventas</h2>
+        <h2 className="font-display font-semibold text-shopix-text mb-3">Historial de ventas</h2>
         {loading ? (
           <div className="space-y-2">
             {[1, 2, 3].map((i) => (
@@ -111,7 +111,7 @@ export default function DashboardVendedorPage() {
             ))}
           </div>
         ) : orders.length === 0 ? (
-          <div className="text-center py-12 text-cripex-faint">
+          <div className="text-center py-12 text-shopix-faint">
             <p>Aún no tenés ventas</p>
           </div>
         ) : (
@@ -120,10 +120,10 @@ export default function DashboardVendedorPage() {
               <GlowCard key={order.id} className="p-4 flex items-center gap-4">
                 <Badge status={order.status as OrderStatus} />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-cripex-text truncate">
+                  <p className="text-sm font-medium text-shopix-text truncate">
                     {order.product?.title}
                   </p>
-                  <p className="text-xs text-cripex-faint">
+                  <p className="text-xs text-shopix-faint">
                     {new Date(order.createdAt).toLocaleDateString('es-AR')}
                   </p>
                 </div>

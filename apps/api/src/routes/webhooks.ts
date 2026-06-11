@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify'
 import { eq } from 'drizzle-orm'
 import { db } from '../lib/db'
-import { orders, orderEvents, disputes } from '@cripex/db'
+import { orders, orderEvents, disputes } from '@shopix/db'
 import { notifyUser } from '../services/notification.service'
 
 // Eventos que puede emitir el contrato

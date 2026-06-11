@@ -22,6 +22,6 @@ export const useAuthStore = create<AuthState>()(
       setAuth: (token, user) => set({ token, user }),
       clearAuth: () => set({ token: null, user: null }),
     }),
-    { name: 'cripex-auth', storage: createJSONStorage(() => sessionStorage) }
+    { name: 'shopix-auth', storage: createJSONStorage(() => sessionStorage) }
   )
 )

@@ -45,7 +45,7 @@ export default function ProductDetailPage() {
 
   if (!product) {
     return (
-      <div className="max-w-6xl mx-auto px-4 py-16 text-center text-cripex-faint">
+      <div className="max-w-6xl mx-auto px-4 py-16 text-center text-shopix-faint">
         Producto no encontrado
       </div>
     )
@@ -93,9 +93,9 @@ export default function ProductDetailPage() {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <Badge status={product.condition} />
-                <Badge status={product.category as any} className="badge bg-bg-elevated text-cripex-muted border border-bg-border capitalize" />
+                <Badge status={product.category as any} className="badge bg-bg-elevated text-shopix-muted border border-bg-border capitalize" />
               </div>
-              <h1 className="text-2xl md:text-3xl font-display font-bold text-cripex-text leading-tight">
+              <h1 className="text-2xl md:text-3xl font-display font-bold text-shopix-text leading-tight">
                 {product.title}
               </h1>
             </div>
@@ -106,11 +106,11 @@ export default function ProductDetailPage() {
             {product.seller && (
               <div className="space-y-2">
                 <div className="bg-bg-elevated rounded-xl p-4 border border-bg-border">
-                  <p className="text-xs text-cripex-faint mb-2">Vendedor</p>
+                  <p className="text-xs text-shopix-faint mb-2">Vendedor</p>
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="flex items-center gap-2">
-                        <p className="font-medium text-cripex-text">
+                        <p className="font-medium text-shopix-text">
                           {product.seller.username || 'Anónimo'}
                         </p>
                         {(product.seller as any).riskLevel && (product.seller as any).riskLevel !== 'clean' && (
@@ -119,7 +119,7 @@ export default function ProductDetailPage() {
                       </div>
                       <div className="flex items-center gap-1 mt-0.5">
                         <span className="text-yellow-400 text-xs">★</span>
-                        <span className="text-xs text-cripex-muted">
+                        <span className="text-xs text-shopix-muted">
                           {product.seller.reputationScore} pts · {product.seller.totalSales} ventas
                         </span>
                       </div>
@@ -138,8 +138,8 @@ export default function ProductDetailPage() {
 
             {/* Descripción */}
             <div>
-              <h2 className="font-display font-semibold text-sm text-cripex-muted mb-2">Descripción</h2>
-              <p className="text-cripex-text text-sm leading-relaxed whitespace-pre-line">
+              <h2 className="font-display font-semibold text-sm text-shopix-muted mb-2">Descripción</h2>
+              <p className="text-shopix-text text-sm leading-relaxed whitespace-pre-line">
                 {product.description}
               </p>
             </div>
@@ -147,7 +147,7 @@ export default function ProductDetailPage() {
             {/* Stock */}
             <div className="flex items-center gap-2 text-sm">
               <span className={`w-2 h-2 rounded-full ${product.stock > 0 ? 'bg-accent' : 'bg-red-400'}`} />
-              <span className="text-cripex-muted">
+              <span className="text-shopix-muted">
                 {product.stock > 0 ? `${product.stock} en stock` : 'Sin stock'}
               </span>
             </div>
@@ -156,7 +156,7 @@ export default function ProductDetailPage() {
             {!isOwnProduct && product.stock > 0 && (
               <div className="space-y-3">
                 {!isConnected ? (
-                  <p className="text-sm text-cripex-muted text-center py-3 bg-bg-elevated rounded-xl border border-bg-border">
+                  <p className="text-sm text-shopix-muted text-center py-3 bg-bg-elevated rounded-xl border border-bg-border">
                     Conectá tu wallet para comprar
                   </p>
                 ) : (product.seller as any)?.riskLevel === 'banned' ? (
@@ -177,7 +177,7 @@ export default function ProductDetailPage() {
             {/* Info escrow */}
             <div className="bg-accent/5 border border-accent/15 rounded-xl p-4 text-sm">
               <p className="text-accent font-medium mb-1">🔒 Compra protegida por escrow</p>
-              <p className="text-cripex-muted text-xs leading-relaxed">
+              <p className="text-shopix-muted text-xs leading-relaxed">
                 Tus USDT quedan en un smart contract hasta que confirmés la recepción.
                 Si hay un problema, Kleros resuelve la disputa.
               </p>

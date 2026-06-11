@@ -48,7 +48,7 @@ export async function sendEmail(params: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: 'Cripex <noreply@cripex.ar>',
+      from: 'Shopix <noreply@shopix.ar>',
       to: params.to,
       subject: params.subject,
       html: params.html,

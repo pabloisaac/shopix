@@ -1,11 +1,11 @@
 import { Queue, Worker } from 'bullmq'
 import { eq, and, isNotNull } from 'drizzle-orm'
 import { db } from '../lib/db'
-import { orders, orderEvents } from '@cripex/db'
+import { orders, orderEvents } from '@shopix/db'
 import { getTrackingStatus } from '../services/tracking.service'
 import { notifyUser } from '../services/notification.service'
 import { redis } from '../lib/redis'
-import type { TrackingCarrier } from '@cripex/shared'
+import type { TrackingCarrier } from '@shopix/shared'
 
 const QUEUE_NAME = 'tracking'
 

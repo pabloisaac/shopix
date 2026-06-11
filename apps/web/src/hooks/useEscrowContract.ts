@@ -4,7 +4,7 @@ import { useWriteContract, useReadContract, useWaitForTransactionReceipt } from 
 import { parseUnits } from 'viem'
 import { useState } from 'react'
 import { CONTRACT_ADDRESS, USDT_ADDRESS, ESCROW_ABI, ERC20_ABI } from '@/lib/contracts'
-import { USDT_DECIMALS, DEFAULT_TIMEOUT_DAYS } from '@cripex/shared'
+import { USDT_DECIMALS, DEFAULT_TIMEOUT_DAYS } from '@shopix/shared'
 
 export function useCreateOrder() {
   const { writeContractAsync } = useWriteContract()

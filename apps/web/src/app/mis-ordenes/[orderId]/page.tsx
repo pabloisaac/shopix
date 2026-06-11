@@ -9,7 +9,7 @@ import { useAuthStore } from '@/store/authStore'
 import { Badge, StatusDot } from '@/components/ui/Badge'
 import { PriceDisplay } from '@/components/ui/PriceDisplay'
 import { useConfirmReceipt } from '@/hooks/useEscrowContract'
-import type { OrderStatus } from '@cripex/shared'
+import type { OrderStatus } from '@shopix/shared'
 
 const EVENT_LABELS: Record<string, string> = {
   created: 'Orden creada',
@@ -278,10 +278,10 @@ export default function OrderDetailPage() {
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <button onClick={() => router.back()} className="text-cripex-faint hover:text-cripex-text transition-colors">
+        <button onClick={() => router.back()} className="text-shopix-faint hover:text-shopix-text transition-colors">
           ← Volver
         </button>
-        <h1 className="text-2xl font-display font-bold text-cripex-text">Detalle de orden</h1>
+        <h1 className="text-2xl font-display font-bold text-shopix-text">Detalle de orden</h1>
       </div>
 
       {/* Estado */}
@@ -291,12 +291,12 @@ export default function OrderDetailPage() {
             <div className="flex items-center gap-2 mb-2">
               <StatusDot status={order.status as OrderStatus} />
               <Badge status={order.status as OrderStatus} />
-              <span className="text-xs text-cripex-faint font-mono">{order.id}</span>
+              <span className="text-xs text-shopix-faint font-mono">{order.id}</span>
             </div>
-            <h2 className="text-lg font-display font-semibold text-cripex-text">
+            <h2 className="text-lg font-display font-semibold text-shopix-text">
               {order.product?.title}
             </h2>
-            <p className="text-xs text-cripex-faint mt-1">
+            <p className="text-xs text-shopix-faint mt-1">
               {isBuyer
                 ? `Vendedor: ${order.seller?.username || order.seller?.walletAddress?.slice(0, 10)}…`
                 : `Comprador: ${order.buyer?.username || order.buyer?.walletAddress?.slice(0, 10)}…`}
@@ -305,14 +305,14 @@ export default function OrderDetailPage() {
           <PriceDisplay amountUsdt={order.amountUsdt} size="lg" showArs />
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-3 text-xs text-cripex-muted">
+        <div className="mt-4 grid grid-cols-2 gap-3 text-xs text-shopix-muted">
           <div>
-            <span className="text-cripex-faint">Creada</span>
-            <p className="text-cripex-text font-medium">{new Date(order.createdAt).toLocaleString('es-AR')}</p>
+            <span className="text-shopix-faint">Creada</span>
+            <p className="text-shopix-text font-medium">{new Date(order.createdAt).toLocaleString('es-AR')}</p>
           </div>
           <div>
-            <span className="text-cripex-faint">Timeout escrow</span>
-            <p className="text-cripex-text font-medium">{new Date(order.timeoutAt).toLocaleString('es-AR')}</p>
+            <span className="text-shopix-faint">Timeout escrow</span>
+            <p className="text-shopix-text font-medium">{new Date(order.timeoutAt).toLocaleString('es-AR')}</p>
           </div>
         </div>
 
@@ -328,9 +328,9 @@ export default function OrderDetailPage() {
         {/* Deadline como info para el comprador */}
         {isActive && order.shippingDeadlineAt && isBuyer && !order.trackingNumber && (
           <div className="mt-4 bg-bg-secondary rounded-xl p-3">
-            <p className="text-xs text-cripex-muted">
+            <p className="text-xs text-shopix-muted">
               El vendedor tiene hasta el{' '}
-              <span className="text-cripex-text font-medium">
+              <span className="text-shopix-text font-medium">
                 {new Date(order.shippingDeadlineAt).toLocaleString('es-AR')}
               </span>{' '}
               para enviar el producto.
@@ -354,7 +354,7 @@ export default function OrderDetailPage() {
 
       {isActive && (
         <div className="bg-bg-elevated border border-bg-border rounded-2xl p-6 space-y-4">
-          <h3 className="font-display font-semibold text-cripex-text">Acciones</h3>
+          <h3 className="font-display font-semibold text-shopix-text">Acciones</h3>
 
           {isBuyer && (
             <div className="flex flex-col sm:flex-row gap-3">
@@ -373,7 +373,7 @@ export default function OrderDetailPage() {
 
           {isSeller && !order.trackingNumber && (
             <div className="space-y-3">
-              <p className="text-sm text-cripex-muted">
+              <p className="text-sm text-shopix-muted">
                 Cargá el número de seguimiento. El comprador puede confirmar recepción una vez que lo reciba.
               </p>
               <div className="flex gap-2 flex-wrap">
@@ -508,7 +508,7 @@ export default function OrderDetailPage() {
       {order.status === 'refunded_no_return' && (
         <div className="bg-red-500/5 border border-red-500/20 rounded-2xl p-6">
           <h3 className="font-display font-semibold text-red-400 mb-2">🚫 Devolución no realizada</h3>
-          <p className="text-sm text-cripex-muted">
+          <p className="text-sm text-shopix-muted">
             El comprador no devolvió el producto en el plazo establecido. Su reputación fue afectada.
             {isSeller && ' Podés abrir una nueva disputa si considerás que corresponde.'}
           </p>
@@ -518,11 +518,11 @@ export default function OrderDetailPage() {
       {/* Tracking */}
       {order.trackingNumber && (
         <div className="bg-bg-elevated border border-bg-border rounded-2xl p-6">
-          <h3 className="font-display font-semibold text-cripex-text mb-3">Envío</h3>
+          <h3 className="font-display font-semibold text-shopix-text mb-3">Envío</h3>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-cripex-muted">{CARRIER_LABELS[order.trackingCarrier] || order.trackingCarrier}</p>
-              <p className="font-mono text-cripex-text font-medium text-lg">{order.trackingNumber}</p>
+              <p className="text-sm text-shopix-muted">{CARRIER_LABELS[order.trackingCarrier] || order.trackingCarrier}</p>
+              <p className="font-mono text-shopix-text font-medium text-lg">{order.trackingNumber}</p>
             </div>
             <span className="badge badge-active text-xs">En camino</span>
           </div>
@@ -532,9 +532,9 @@ export default function OrderDetailPage() {
       {/* Dirección de envío */}
       {order.shippingAddress && (
         <div className="bg-bg-elevated border border-bg-border rounded-2xl p-6">
-          <h3 className="font-display font-semibold text-cripex-text mb-3">Dirección de entrega</h3>
-          <div className="text-sm text-cripex-muted space-y-1">
-            <p className="text-cripex-text font-medium">{order.shippingAddress.name}</p>
+          <h3 className="font-display font-semibold text-shopix-text mb-3">Dirección de entrega</h3>
+          <div className="text-sm text-shopix-muted space-y-1">
+            <p className="text-shopix-text font-medium">{order.shippingAddress.name}</p>
             <p>{order.shippingAddress.street}</p>
             <p>{order.shippingAddress.city}, {order.shippingAddress.province} {order.shippingAddress.zip}</p>
             {order.shippingAddress.phone && <p>Tel: {order.shippingAddress.phone}</p>}
@@ -546,22 +546,22 @@ export default function OrderDetailPage() {
       {canChat && (
         <div className="bg-bg-elevated border border-bg-border rounded-2xl overflow-hidden">
           <div className="p-4 border-b border-bg-border">
-            <h3 className="font-display font-semibold text-cripex-text">Comunicación con {isBuyer ? 'el vendedor' : 'el comprador'}</h3>
-            <p className="text-xs text-cripex-faint mt-0.5">Solo mensajes predefinidos. Nunca compartas datos personales.</p>
+            <h3 className="font-display font-semibold text-shopix-text">Comunicación con {isBuyer ? 'el vendedor' : 'el comprador'}</h3>
+            <p className="text-xs text-shopix-faint mt-0.5">Solo mensajes predefinidos. Nunca compartas datos personales.</p>
           </div>
 
           {/* Hilo de mensajes */}
           <div className="p-4 space-y-2 max-h-72 overflow-y-auto">
             {messages.length === 0 ? (
-              <p className="text-xs text-cripex-faint text-center py-4">Sin mensajes aún</p>
+              <p className="text-xs text-shopix-faint text-center py-4">Sin mensajes aún</p>
             ) : messages.map((msg) => {
               const isOwn = msg.sender?.id === order[isBuyer ? 'buyerId' : 'sellerId']
               return (
                 <div key={msg.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
                   <div className={`max-w-xs px-3 py-2 rounded-xl text-sm ${
                     isOwn
-                      ? 'bg-accent/20 text-cripex-text border border-accent/30'
-                      : 'bg-bg-secondary text-cripex-muted'
+                      ? 'bg-accent/20 text-shopix-text border border-accent/30'
+                      : 'bg-bg-secondary text-shopix-muted'
                   }`}>
                     <p>{msg.label}</p>
                     <p className="text-xs opacity-50 mt-0.5">
@@ -575,14 +575,14 @@ export default function OrderDetailPage() {
 
           {/* Botones de mensajes disponibles */}
           <div className="p-4 border-t border-bg-border">
-            <p className="text-xs text-cripex-faint mb-2">Enviá un mensaje:</p>
+            <p className="text-xs text-shopix-faint mb-2">Enviá un mensaje:</p>
             <div className="flex flex-wrap gap-2">
               {availableMessages.map(m => (
                 <button
                   key={m.type}
                   onClick={() => handleSendMessage(m.type)}
                   disabled={sendingMsg}
-                  className="text-xs px-3 py-1.5 rounded-lg border border-bg-border hover:border-accent/40 hover:text-accent text-cripex-muted transition-colors"
+                  className="text-xs px-3 py-1.5 rounded-lg border border-bg-border hover:border-accent/40 hover:text-accent text-shopix-muted transition-colors"
                 >
                   {m.label}
                 </button>
@@ -595,7 +595,7 @@ export default function OrderDetailPage() {
       {/* Timeline de eventos */}
       {order.events?.length > 0 && (
         <div className="bg-bg-elevated border border-bg-border rounded-2xl p-6">
-          <h3 className="font-display font-semibold text-cripex-text mb-4">Historial</h3>
+          <h3 className="font-display font-semibold text-shopix-text mb-4">Historial</h3>
           <div className="relative space-y-1">
             {[...order.events].reverse().map((event: any, i: number, arr: any[]) => (
               <div key={event.id} className="flex gap-3">
@@ -604,14 +604,14 @@ export default function OrderDetailPage() {
                   {i < arr.length - 1 && <div className="w-px flex-1 bg-bg-border mt-1 mb-1" />}
                 </div>
                 <div className="pb-3">
-                  <p className="text-sm font-medium text-cripex-text">
+                  <p className="text-sm font-medium text-shopix-text">
                     {EVENT_LABELS[event.eventType] || event.eventType}
                   </p>
-                  <p className="text-xs text-cripex-faint">
+                  <p className="text-xs text-shopix-faint">
                     {new Date(event.createdAt).toLocaleString('es-AR')}
                   </p>
                   {event.txHash && (
-                    <p className="text-xs font-mono text-cripex-faint mt-0.5">
+                    <p className="text-xs font-mono text-shopix-faint mt-0.5">
                       tx: {event.txHash.slice(0, 20)}…
                     </p>
                   )}

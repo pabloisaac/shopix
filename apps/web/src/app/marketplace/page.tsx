@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { ProductCard } from '@/components/product/ProductCard'
 import { api } from '@/lib/api'
-import type { ProductCategory, ProductCondition } from '@cripex/shared'
+import type { ProductCategory, ProductCondition } from '@shopix/shared'
 
 const CATEGORIES: { value: ProductCategory | ''; label: string }[] = [
   { value: '', label: 'Todas' },
@@ -87,7 +87,7 @@ export default function MarketplacePage() {
         <aside className="lg:w-56 flex-shrink-0">
           <div className="sticky top-24 space-y-6">
             <div>
-              <h3 className="font-display font-semibold text-sm text-cripex-muted mb-3">Categoría</h3>
+              <h3 className="font-display font-semibold text-sm text-shopix-muted mb-3">Categoría</h3>
               <div className="space-y-1">
                 {CATEGORIES.map((cat) => (
                   <button
@@ -96,7 +96,7 @@ export default function MarketplacePage() {
                     className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all duration-200 ${
                       category === cat.value
                         ? 'bg-accent/10 text-accent font-medium'
-                        : 'text-cripex-muted hover:bg-bg-elevated hover:text-cripex-text'
+                        : 'text-shopix-muted hover:bg-bg-elevated hover:text-shopix-text'
                     }`}
                   >
                     {cat.label}
@@ -106,7 +106,7 @@ export default function MarketplacePage() {
             </div>
 
             <div>
-              <h3 className="font-display font-semibold text-sm text-cripex-muted mb-3">Estado</h3>
+              <h3 className="font-display font-semibold text-sm text-shopix-muted mb-3">Estado</h3>
               <div className="space-y-1">
                 {CONDITIONS.map((cond) => (
                   <button
@@ -115,7 +115,7 @@ export default function MarketplacePage() {
                     className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all duration-200 ${
                       condition === cond.value
                         ? 'bg-accent/10 text-accent font-medium'
-                        : 'text-cripex-muted hover:bg-bg-elevated hover:text-cripex-text'
+                        : 'text-shopix-muted hover:bg-bg-elevated hover:text-shopix-text'
                     }`}
                   >
                     {cond.label}
@@ -125,7 +125,7 @@ export default function MarketplacePage() {
             </div>
 
             <div>
-              <h3 className="font-display font-semibold text-sm text-cripex-muted mb-3">Precio (USDT)</h3>
+              <h3 className="font-display font-semibold text-sm text-shopix-muted mb-3">Precio (USDT)</h3>
               <div className="flex items-center gap-2">
                 <input
                   type="number"
@@ -134,7 +134,7 @@ export default function MarketplacePage() {
                   onChange={(e) => setMinPrice(e.target.value)}
                   className="input text-sm py-2 w-full"
                 />
-                <span className="text-cripex-faint">—</span>
+                <span className="text-shopix-faint">—</span>
                 <input
                   type="number"
                   placeholder="Max"
@@ -168,7 +168,7 @@ export default function MarketplacePage() {
             </select>
           </div>
 
-          <div className="text-sm text-cripex-faint mb-4">
+          <div className="text-sm text-shopix-faint mb-4">
             {loading ? 'Cargando…' : `${total} productos encontrados`}
           </div>
 
@@ -196,7 +196,7 @@ export default function MarketplacePage() {
                   >
                     ← Anterior
                   </button>
-                  <span className="text-sm text-cripex-muted px-4">
+                  <span className="text-sm text-shopix-muted px-4">
                     {page} / {Math.ceil(total / 20)}
                   </span>
                   <button
@@ -210,7 +210,7 @@ export default function MarketplacePage() {
               )}
             </>
           ) : (
-            <div className="text-center py-20 text-cripex-faint">
+            <div className="text-center py-20 text-shopix-faint">
               <p className="text-lg">No hay productos con estos filtros</p>
               <button
                 onClick={() => { setCategory(''); setCondition(''); setSearch(''); }}

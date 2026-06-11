@@ -24,15 +24,15 @@ export function AddressTag({ address, className }: AddressTagProps) {
       onClick={copy}
       className={clsx(
         'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-mono text-xs',
-        'bg-bg-elevated border border-bg-border text-cripex-muted',
-        'hover:border-accent/30 hover:text-cripex-text transition-all duration-200',
+        'bg-bg-elevated border border-bg-border text-shopix-muted',
+        'hover:border-accent/30 hover:text-shopix-text transition-all duration-200',
         className
       )}
       title={address}
     >
       <span>{truncated}</span>
       <svg
-        className={clsx('w-3 h-3', copied ? 'text-accent' : 'text-cripex-faint')}
+        className={clsx('w-3 h-3', copied ? 'text-accent' : 'text-shopix-faint')}
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"

@@ -6,7 +6,7 @@ import { useAccount } from 'wagmi'
 import { useAuthStore } from '@/store/authStore'
 import { api } from '@/lib/api'
 import { PriceDisplay } from '@/components/ui/PriceDisplay'
-import type { ProductCategory, ProductCondition } from '@cripex/shared'
+import type { ProductCategory, ProductCondition } from '@shopix/shared'
 
 type Step = 'info' | 'price' | 'preview'
 
@@ -60,28 +60,28 @@ export default function VenderPage() {
   if (!isConnected || !token) {
     return (
       <div className="max-w-xl mx-auto px-4 py-16 text-center">
-        <p className="text-cripex-muted">Conectá tu wallet para publicar productos</p>
+        <p className="text-shopix-muted">Conectá tu wallet para publicar productos</p>
       </div>
     )
   }
 
   return (
     <div className="max-w-xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-display font-bold text-cripex-text mb-2">Publicar producto</h1>
+      <h1 className="text-2xl font-display font-bold text-shopix-text mb-2">Publicar producto</h1>
 
       {/* Steps indicator */}
       <div className="flex items-center gap-2 mb-8">
         {(['info', 'price', 'preview'] as const).map((s, i) => (
           <div key={s} className="flex items-center gap-2">
             <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold font-mono transition-all ${
-              step === s ? 'bg-accent text-bg-primary' : i < ['info', 'price', 'preview'].indexOf(step) ? 'bg-accent/30 text-accent' : 'bg-bg-elevated text-cripex-faint border border-bg-border'
+              step === s ? 'bg-accent text-bg-primary' : i < ['info', 'price', 'preview'].indexOf(step) ? 'bg-accent/30 text-accent' : 'bg-bg-elevated text-shopix-faint border border-bg-border'
             }`}>
               {i + 1}
             </div>
             {i < 2 && <div className="h-px w-8 bg-bg-border" />}
           </div>
         ))}
-        <span className="ml-2 text-sm text-cripex-muted capitalize">{
+        <span className="ml-2 text-sm text-shopix-muted capitalize">{
           { info: 'Información', price: 'Precio', preview: 'Publicar' }[step]
         }</span>
       </div>
@@ -103,7 +103,7 @@ export default function VenderPage() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-cripex-muted mb-1 block">Categoría</label>
+              <label className="text-xs text-shopix-muted mb-1 block">Categoría</label>
               <select
                 className="input"
                 value={form.category}
@@ -117,7 +117,7 @@ export default function VenderPage() {
               </select>
             </div>
             <div>
-              <label className="text-xs text-cripex-muted mb-1 block">Estado</label>
+              <label className="text-xs text-shopix-muted mb-1 block">Estado</label>
               <select
                 className="input"
                 value={form.condition}
@@ -131,7 +131,7 @@ export default function VenderPage() {
           </div>
 
           <div>
-            <label className="text-xs text-cripex-muted mb-1 block">Stock</label>
+            <label className="text-xs text-shopix-muted mb-1 block">Stock</label>
             <input
               type="number"
               min={1}
@@ -143,7 +143,7 @@ export default function VenderPage() {
           </div>
 
           <div>
-            <label className="text-xs text-cripex-muted mb-2 block">
+            <label className="text-xs text-shopix-muted mb-2 block">
               IPFS CID de imágenes (por ahora pegar CIDs manualmente)
             </label>
             <input
@@ -160,7 +160,7 @@ export default function VenderPage() {
             {form.imagesIpfs.length > 0 && (
               <div className="flex gap-2 mt-2 flex-wrap">
                 {form.imagesIpfs.map((cid, i) => (
-                  <span key={i} className="text-xs bg-bg-elevated border border-bg-border rounded px-2 py-1 font-mono text-cripex-muted">
+                  <span key={i} className="text-xs bg-bg-elevated border border-bg-border rounded px-2 py-1 font-mono text-shopix-muted">
                     {cid.slice(0, 10)}…
                     <button onClick={() => update('imagesIpfs', form.imagesIpfs.filter((_, j) => j !== i))} className="ml-1 text-red-400">×</button>
                   </span>
@@ -182,7 +182,7 @@ export default function VenderPage() {
       {step === 'price' && (
         <div className="space-y-4">
           <div>
-            <label className="text-xs text-cripex-muted mb-1 block">Precio en USDT</label>
+            <label className="text-xs text-shopix-muted mb-1 block">Precio en USDT</label>
             <input
               type="number"
               step="0.01"
@@ -196,9 +196,9 @@ export default function VenderPage() {
 
           {form.priceUsdt && (
             <div className="bg-bg-elevated rounded-xl p-4 border border-bg-border">
-              <p className="text-xs text-cripex-muted mb-2">Preview del precio</p>
+              <p className="text-xs text-shopix-muted mb-2">Preview del precio</p>
               <PriceDisplay amountUsdt={form.priceUsdt} size="xl" showArs />
-              <p className="text-xs text-cripex-faint mt-3">
+              <p className="text-xs text-shopix-faint mt-3">
                 Vos recibís: {(parseFloat(form.priceUsdt || '0') * 0.985).toFixed(2)} USDT
                 (fee de plataforma 1.5%)
               </p>
@@ -231,9 +231,9 @@ export default function VenderPage() {
               />
             )}
             <div className="p-4 space-y-3">
-              <h2 className="font-display font-bold text-cripex-text">{form.title}</h2>
+              <h2 className="font-display font-bold text-shopix-text">{form.title}</h2>
               <PriceDisplay amountUsdt={form.priceUsdt} size="lg" />
-              <p className="text-sm text-cripex-muted line-clamp-3">{form.description}</p>
+              <p className="text-sm text-shopix-muted line-clamp-3">{form.description}</p>
             </div>
           </div>
 

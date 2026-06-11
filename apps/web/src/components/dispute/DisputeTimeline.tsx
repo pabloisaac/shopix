@@ -1,7 +1,7 @@
 'use client'
 
 import { clsx } from 'clsx'
-import type { DisputeStatus } from '@cripex/shared'
+import type { DisputeStatus } from '@shopix/shared'
 
 const KLEROS_PHASES: { key: DisputeStatus; label: string; description: string }[] = [
   {
@@ -51,7 +51,7 @@ export function DisputeTimeline({ status, klerosDisputeId, ruling }: DisputeTime
     <div className="space-y-4">
       {klerosDisputeId && (
         <div className="flex items-center gap-2 text-sm">
-          <span className="text-cripex-muted">Caso Kleros #</span>
+          <span className="text-shopix-muted">Caso Kleros #</span>
           <a
             href={`https://court.kleros.io/cases/${klerosDisputeId}`}
             target="_blank"
@@ -60,7 +60,7 @@ export function DisputeTimeline({ status, klerosDisputeId, ruling }: DisputeTime
           >
             {klerosDisputeId}
           </a>
-          <span className="text-cripex-faint">↗</span>
+          <span className="text-shopix-faint">↗</span>
         </div>
       )}
 
@@ -95,13 +95,13 @@ export function DisputeTimeline({ status, klerosDisputeId, ruling }: DisputeTime
                 <p
                   className={clsx(
                     'text-sm font-medium font-display',
-                    isActive ? 'text-secondary' : isDone ? 'text-cripex-text' : 'text-cripex-faint'
+                    isActive ? 'text-secondary' : isDone ? 'text-shopix-text' : 'text-shopix-faint'
                   )}
                 >
                   {phase.label}
                   {isActive && <span className="ml-2 text-xs text-secondary/70">← actual</span>}
                 </p>
-                <p className="text-xs text-cripex-muted mt-0.5">{phase.description}</p>
+                <p className="text-xs text-shopix-muted mt-0.5">{phase.description}</p>
               </div>
             </div>
           )

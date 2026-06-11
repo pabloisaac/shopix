@@ -9,6 +9,6 @@ export default defineConfig({
   out: './migrations',
   dialect: 'postgresql',
   dbCredentials: {
-    url: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/cripex',
+    url: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/shopix',
   },
 })

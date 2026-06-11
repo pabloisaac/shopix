@@ -4,7 +4,7 @@ import { privateKeyToAccount } from 'viem/accounts'
 import { eq, ilike } from 'drizzle-orm'
 import { z } from 'zod'
 import { db } from '../lib/db'
-import { users } from '@cripex/db'
+import { users } from '@shopix/db'
 import { publicClient, getAdminWalletClient } from '../lib/viem'
 
 // Cuentas Hardhat (dev only — claves públicamente conocidas)

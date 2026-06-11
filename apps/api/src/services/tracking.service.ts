@@ -1,4 +1,4 @@
-import type { TrackingCarrier } from '@cripex/shared'
+import type { TrackingCarrier } from '@shopix/shared'
 
 export interface TrackingStatus {
   carrier: TrackingCarrier

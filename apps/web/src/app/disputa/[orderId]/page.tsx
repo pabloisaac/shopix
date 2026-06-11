@@ -7,7 +7,7 @@ import { useAuthStore } from '@/store/authStore'
 import { api } from '@/lib/api'
 import { DisputeTimeline } from '@/components/dispute/DisputeTimeline'
 import { GlowCard } from '@/components/ui/GlowCard'
-import type { DisputeStatus } from '@cripex/shared'
+import type { DisputeStatus } from '@shopix/shared'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002'
 
@@ -15,7 +15,7 @@ function EvidenceCidRow({ cid }: { cid: string }) {
   const isLocal = cid.startsWith('QmLocal')
   if (isLocal) {
     return (
-      <div className="flex items-center gap-2 text-xs font-mono text-cripex-faint">
+      <div className="flex items-center gap-2 text-xs font-mono text-shopix-faint">
         <span>📄</span>
         <span className="truncate">{cid}</span>
         <span className="text-yellow-500/70 font-sans">(local)</span>
@@ -148,14 +148,14 @@ export default function DisputaPage() {
   }
 
   if (loading) {
-    return <div className="max-w-2xl mx-auto px-4 py-16 text-center text-cripex-faint">Cargando…</div>
+    return <div className="max-w-2xl mx-auto px-4 py-16 text-center text-shopix-faint">Cargando…</div>
   }
 
   // Sin disputa → formulario para abrir
   if (!dispute) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
-        <h1 className="text-2xl font-display font-bold text-cripex-text">Abrir disputa con Kleros</h1>
+        <h1 className="text-2xl font-display font-bold text-shopix-text">Abrir disputa con Kleros</h1>
 
         <GlowCard className="p-6 space-y-4">
           <div className="bg-yellow-400/5 border border-yellow-400/20 rounded-xl p-4 text-sm text-yellow-300 space-y-2">
@@ -168,14 +168,14 @@ export default function DisputaPage() {
           </div>
 
           <div className="space-y-3">
-            <label className="text-sm text-cripex-muted">Motivo de la disputa</label>
+            <label className="text-sm text-shopix-muted">Motivo de la disputa</label>
             <textarea
               className="input min-h-24 resize-none"
               placeholder="Describí brevemente por qué abrís la disputa…"
               value={openReason}
               onChange={e => setOpenReason(e.target.value)}
             />
-            <p className="text-xs text-cripex-faint">{openReason.length} caracteres (mínimo 5)</p>
+            <p className="text-xs text-shopix-faint">{openReason.length} caracteres (mínimo 5)</p>
           </div>
 
           <button
@@ -193,7 +193,7 @@ export default function DisputaPage() {
   // Con disputa → gestión
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
-      <h1 className="text-2xl font-display font-bold text-cripex-text">Gestión de disputa</h1>
+      <h1 className="text-2xl font-display font-bold text-shopix-text">Gestión de disputa</h1>
 
       {/* Panel DEV — simulación Kleros, solo en localhost */}
       {isDev && dispute.status !== 'resolved' && (
@@ -219,7 +219,7 @@ export default function DisputaPage() {
       )}
 
       <GlowCard className="p-6">
-        <h2 className="font-display font-semibold text-cripex-text mb-4">Estado en Kleros</h2>
+        <h2 className="font-display font-semibold text-shopix-text mb-4">Estado en Kleros</h2>
         <DisputeTimeline
           status={dispute.status as DisputeStatus}
           klerosDisputeId={dispute.klerosDisputeId}
@@ -236,7 +236,7 @@ export default function DisputaPage() {
                 <span className="text-2xl">📦</span>
                 <div>
                   <h3 className="font-semibold text-orange-300">Fallo a favor del comprador</h3>
-                  <p className="text-sm text-cripex-muted mt-0.5">
+                  <p className="text-sm text-shopix-muted mt-0.5">
                     Los fondos serán devueltos. El comprador debe retornar el producto al vendedor.
                   </p>
                 </div>
@@ -254,7 +254,7 @@ export default function DisputaPage() {
                 <span className="text-2xl">✅</span>
                 <div>
                   <h3 className="font-semibold text-green-400">Fallo a favor del vendedor</h3>
-                  <p className="text-sm text-cripex-muted mt-0.5">
+                  <p className="text-sm text-shopix-muted mt-0.5">
                     Los fondos fueron liberados al vendedor. La orden está completada.
                   </p>
                 </div>
@@ -273,7 +273,7 @@ export default function DisputaPage() {
       {/* Subir evidencia */}
       {dispute.status !== 'resolved' && (
         <GlowCard className="p-6">
-          <h2 className="font-display font-semibold text-cripex-text mb-4">Subir evidencia</h2>
+          <h2 className="font-display font-semibold text-shopix-text mb-4">Subir evidencia</h2>
 
           {submitted && (
             <div className="bg-accent/5 border border-accent/20 rounded-xl p-3 text-sm text-accent mb-4">
@@ -297,7 +297,7 @@ export default function DisputaPage() {
 
             {/* File upload */}
             <div>
-              <label className="block text-xs text-cripex-muted mb-2">Adjuntar archivo (foto, video, PDF) — opcional</label>
+              <label className="block text-xs text-shopix-muted mb-2">Adjuntar archivo (foto, video, PDF) — opcional</label>
               <label className={`flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
                 evidenceFile ? 'border-accent/50 bg-accent/5' : 'border-bg-border hover:border-accent/30 hover:bg-bg-secondary'
               }`}>
@@ -307,19 +307,19 @@ export default function DisputaPage() {
                 ) : evidenceFile ? (
                   <div className="text-center">
                     <p className="text-sm text-accent">📎 {evidenceFile.name}</p>
-                    <p className="text-xs text-cripex-faint mt-1">{(evidenceFile.size / 1024).toFixed(0)} KB</p>
+                    <p className="text-xs text-shopix-faint mt-1">{(evidenceFile.size / 1024).toFixed(0)} KB</p>
                   </div>
                 ) : (
                   <div className="text-center">
-                    <p className="text-sm text-cripex-faint">📁 Clickeá para adjuntar</p>
-                    <p className="text-xs text-cripex-faint mt-1">JPG, PNG, MP4, PDF — máx 10MB</p>
+                    <p className="text-sm text-shopix-faint">📁 Clickeá para adjuntar</p>
+                    <p className="text-xs text-shopix-faint mt-1">JPG, PNG, MP4, PDF — máx 10MB</p>
                   </div>
                 )}
               </label>
               {evidenceFile && (
                 <button
                   onClick={() => { setEvidenceFile(null); setFilePreview(null) }}
-                  className="text-xs text-cripex-faint hover:text-red-400 mt-1 transition-colors"
+                  className="text-xs text-shopix-faint hover:text-red-400 mt-1 transition-colors"
                 >
                   × Quitar archivo
                 </button>
@@ -340,11 +340,11 @@ export default function DisputaPage() {
       {/* Evidencias presentadas */}
       {(dispute.buyerEvidenceIpfs?.length > 0 || dispute.sellerEvidenceIpfs?.length > 0) && (
         <GlowCard className="p-6">
-          <h2 className="font-display font-semibold text-cripex-text mb-4">Evidencias presentadas</h2>
+          <h2 className="font-display font-semibold text-shopix-text mb-4">Evidencias presentadas</h2>
 
           {dispute.buyerEvidenceIpfs?.length > 0 && (
             <div className="mb-4">
-              <p className="text-xs text-cripex-muted mb-2">Del comprador</p>
+              <p className="text-xs text-shopix-muted mb-2">Del comprador</p>
               <div className="space-y-1">
                 {dispute.buyerEvidenceIpfs.map((cid: string, i: number) => (
                   <EvidenceCidRow key={i} cid={cid} />
@@ -355,7 +355,7 @@ export default function DisputaPage() {
 
           {dispute.sellerEvidenceIpfs?.length > 0 && (
             <div>
-              <p className="text-xs text-cripex-muted mb-2">Del vendedor</p>
+              <p className="text-xs text-shopix-muted mb-2">Del vendedor</p>
               <div className="space-y-1">
                 {dispute.sellerEvidenceIpfs.map((cid: string, i: number) => (
                   <EvidenceCidRow key={i} cid={cid} />

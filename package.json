@@ -1,5 +1,5 @@
 {
-  "name": "cripex",
+  "name": "shopix",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -7,10 +7,10 @@
     "build": "turbo run build",
     "test": "turbo run test",
     "lint": "turbo run lint",
-    "db:migrate": "pnpm --filter @cripex/db migrate",
-    "db:seed": "pnpm --filter @cripex/db seed",
-    "contracts:test": "pnpm --filter @cripex/contracts test",
-    "contracts:deploy:local": "pnpm --filter @cripex/contracts deploy:local"
+    "db:migrate": "pnpm --filter @shopix/db migrate",
+    "db:seed": "pnpm --filter @shopix/db seed",
+    "contracts:test": "pnpm --filter @shopix/contracts test",
+    "contracts:deploy:local": "pnpm --filter @shopix/contracts deploy:local"
   },
   "devDependencies": {
     "turbo": "^2.3.3",

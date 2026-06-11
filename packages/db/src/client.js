@@ -41,6 +41,6 @@ const postgres_js_1 = require("drizzle-orm/postgres-js");
 const postgres_1 = __importDefault(require("postgres"));
 const schema = __importStar(require("./schema"));
 const connectionString = process.env.DATABASE_URL ||
-    'postgresql://postgres:postgres@localhost:5432/cripex';
+    'postgresql://postgres:postgres@localhost:5432/shopix';
 const queryClient = (0, postgres_1.default)(connectionString);
 exports.db = (0, postgres_js_1.drizzle)(queryClient, { schema });

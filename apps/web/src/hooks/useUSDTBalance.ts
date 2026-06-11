@@ -3,7 +3,7 @@
 import { useReadContract, useAccount } from 'wagmi'
 import { formatUnits } from 'viem'
 import { USDT_ADDRESS, ERC20_ABI } from '@/lib/contracts'
-import { USDT_DECIMALS } from '@cripex/shared'
+import { USDT_DECIMALS } from '@shopix/shared'
 
 export function useUSDTBalance() {
   const { address } = useAccount()
