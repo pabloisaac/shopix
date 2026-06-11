@@ -1,11 +1,12 @@
 import { FastifyInstance } from 'fastify'
 import { eq, and } from 'drizzle-orm'
 import { z } from 'zod'
-import { randomBytes } from 'crypto'
+import { randomBytes, randomUUID } from 'crypto'
 import { db } from '../lib/db'
 import { orders, orderEvents, orderMessages, products, users } from '@shopix/db'
 import { getTrackingStatus } from '../services/tracking.service'
 import { assertCanOperate } from '../services/reputation.service'
+import { generarDireccionDeposito } from '../services/deposit.service'
 import type { TrackingCarrier, ShippingAddress } from '@shopix/shared'
 
 const SHIPPING_DEADLINE_HOURS = 48
@@ -24,7 +25,143 @@ const MESSAGE_LABELS: Record<string, { label: string; role: 'buyer' | 'seller' }
 }
 
 export async function orderRoutes(app: FastifyInstance) {
-  // POST /orders — crear orden (devuelve datos para el contrato)
+
+  // POST /orders/checkout — nuevo flujo híbrido sin wallet (cualquier exchange)
+  app.post('/checkout', async (request, reply) => {
+    const schema = z.object({
+      productId:       z.string().uuid(),
+      refundAddress:   z.string().regex(/^0x[0-9a-fA-F]{40}$/, 'Dirección USDT inválida'),
+      buyerEmail:      z.string().email().optional(),
+      shippingAddress: z.object({
+        name:     z.string().min(1),
+        street:   z.string().min(1),
+        city:     z.string().min(1),
+        province: z.string().min(1),
+        zip:      z.string().min(1),
+        phone:    z.string().optional(),
+      }),
+      timeoutDays: z.number().int().min(1).max(30).default(7),
+    })
+
+    const parsed = schema.safeParse(request.body)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Datos inválidos', details: parsed.error.issues })
+    }
+
+    const { productId, refundAddress, buyerEmail, shippingAddress, timeoutDays } = parsed.data
+
+    const product = await db.query.products.findFirst({
+      where: eq(products.id, productId),
+      with: { seller: true },
+    })
+    if (!product || !product.isActive) {
+      return reply.status(404).send({ error: 'Producto no encontrado o inactivo' })
+    }
+    if (product.stock < 1) {
+      return reply.status(400).send({ error: 'Producto sin stock' })
+    }
+
+    // Verificar que el vendedor tiene dirección de cobro configurada
+    const sellerPayoutAddress = (product.seller as any).payoutAddress || product.seller.walletAddress
+    if (!sellerPayoutAddress || sellerPayoutAddress === '0x0') {
+      return reply.status(400).send({ error: 'El vendedor no tiene dirección de cobro configurada' })
+    }
+
+    // Generar dirección de depósito única para esta orden
+    const { address: depositAddress, encryptedKey } = generarDireccionDeposito()
+    const orderId       = randomUUID()
+    const confirmToken  = randomBytes(32).toString('hex')
+    const timeoutAt     = new Date(Date.now() + timeoutDays * 24 * 60 * 60 * 1000)
+
+    // Buscar o crear usuario anónimo para el comprador
+    let buyerUser = await db.query.users.findFirst({
+      where: eq(users.walletAddress, refundAddress.toLowerCase()),
+    })
+    if (!buyerUser) {
+      const [newUser] = await db.insert(users).values({
+        walletAddress: refundAddress.toLowerCase(),
+        username: null,
+      }).returning()
+      buyerUser = newUser
+    }
+
+    const [order] = await db.insert(orders).values({
+      id:                  orderId,
+      productId,
+      buyerId:             buyerUser.id,
+      sellerId:            product.sellerId,
+      amountUsdt:          product.priceUsdt,
+      contractOrderId:     orderId,
+      status:              'awaiting_payment',
+      shippingAddress:     shippingAddress as ShippingAddress,
+      timeoutAt,
+      depositAddress,
+      depositEncryptedKey: encryptedKey,
+      sellerPayoutAddress,
+      buyerRefundAddress:  refundAddress,
+      buyerEmail:          buyerEmail || null,
+      confirmationToken:   confirmToken,
+    }).returning()
+
+    await db.insert(orderEvents).values({
+      orderId: order.id,
+      eventType: 'created',
+      actorAddress: refundAddress,
+      metadata: { productId, amountUsdt: product.priceUsdt, depositAddress },
+    })
+
+    return reply.status(201).send({
+      orderId:        order.id,
+      depositAddress,
+      amountUsdt:     product.priceUsdt,
+      timeoutAt:      timeoutAt.toISOString(),
+    })
+  })
+
+  // GET /orders/:id/status — estado público de la orden (para polling del comprador)
+  app.get('/:id/status', async (request, reply) => {
+    const { id } = request.params as { id: string }
+    const order = await db.query.orders.findFirst({
+      where: eq(orders.id, id),
+      columns: { id: true, status: true, depositAddress: true, amountUsdt: true },
+    })
+    if (!order) return reply.status(404).send({ error: 'Orden no encontrada' })
+    return reply.send({ status: order.status, amountUsdt: order.amountUsdt })
+  })
+
+  // POST /orders/:id/confirm — confirmar recepción por token (sin wallet)
+  app.post('/:id/confirm', async (request, reply) => {
+    const { id } = request.params as { id: string }
+    const schema = z.object({ token: z.string() })
+    const parsed = schema.safeParse(request.body)
+    if (!parsed.success) return reply.status(400).send({ error: 'Token requerido' })
+
+    const order = await db.query.orders.findFirst({ where: eq(orders.id, id) })
+    if (!order) return reply.status(404).send({ error: 'Orden no encontrada' })
+    if (order.confirmationToken !== parsed.data.token) {
+      return reply.status(403).send({ error: 'Token inválido' })
+    }
+    if (order.status !== 'active') {
+      return reply.status(400).send({ error: `La orden no está activa (estado: ${order.status})` })
+    }
+
+    // El operador ejecuta confirmarRecepcion() en el contrato
+    // Por ahora actualizamos el estado en DB — el job lo procesa on-chain
+    await db.update(orders)
+      .set({ status: 'completed', updatedAt: new Date() })
+      .where(eq(orders.id, id))
+
+    await db.insert(orderEvents).values({
+      orderId: id,
+      eventType: 'delivered',
+      actorAddress: order.buyerRefundAddress || '',
+      metadata: { confirmedByToken: true },
+    })
+
+    return reply.send({ ok: true, message: 'Recepción confirmada. Fondos liberados al vendedor.' })
+  })
+
+  // POST /orders — crear orden (flujo legacy con wallet — mantenido para compatibilidad)
   app.post('/', {
     preHandler: [app.authenticate],
   }, async (request, reply) => {
@@ -67,23 +204,21 @@ export async function orderRoutes(app: FastifyInstance) {
       return reply.status(400).send({ error: 'Producto sin stock' })
     }
 
-    // Generar orderId como bytes32 único
-    const orderId = `0x${randomBytes(32).toString('hex')}` as `0x${string}`
+    const orderId   = `0x${randomBytes(32).toString('hex')}` as `0x${string}`
     const timeoutAt = new Date(Date.now() + timeoutDays * 24 * 60 * 60 * 1000)
 
     const [order] = await db.insert(orders).values({
-      id: randomBytes(16).toString('hex'),
+      id: randomUUID(),
       productId,
-      buyerId: userId,
-      sellerId: product.sellerId,
-      amountUsdt: product.priceUsdt,
+      buyerId:         userId,
+      sellerId:        product.sellerId,
+      amountUsdt:      product.priceUsdt,
       contractOrderId: orderId,
-      status: 'pending_payment',
+      status:          'pending_payment',
       shippingAddress: shippingAddress as ShippingAddress,
       timeoutAt,
     }).returning()
 
-    // Log del evento
     await db.insert(orderEvents).values({
       orderId: order.id,
       eventType: 'created',
@@ -96,7 +231,7 @@ export async function orderRoutes(app: FastifyInstance) {
       contractParams: {
         orderId,
         vendedor: product.seller.walletAddress,
-        monto: product.priceUsdt,
+        monto:    product.priceUsdt,
         timeoutDias: timeoutDays,
       },
     })

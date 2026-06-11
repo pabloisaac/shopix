@@ -43,6 +43,36 @@ export async function userRoutes(app: FastifyInstance) {
     return reply.send(publicUser)
   })
 
+  // GET /users/me — perfil propio
+  app.get('/me', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    const { userId } = request.user
+    const user = await db.query.users.findFirst({ where: eq(users.id, userId) })
+    if (!user) return reply.status(404).send({ error: 'Usuario no encontrado' })
+    return reply.send(user)
+  })
+
+  // PATCH /users/me — actualizar campos parciales (payoutAddress, etc.)
+  app.patch('/me', {
+    preHandler: [app.authenticate],
+  }, async (request, reply) => {
+    const schema = z.object({
+      payoutAddress: z.string().regex(/^0x[0-9a-fA-F]{40}$/).optional(),
+      username: z.string().min(3).max(30).optional(),
+    })
+    const parsed = schema.safeParse(request.body)
+    if (!parsed.success) return reply.status(400).send({ error: 'Datos inválidos', details: parsed.error.issues })
+
+    const { userId } = request.user
+    const [updated] = await db.update(users)
+      .set({ ...parsed.data, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning()
+
+    return reply.send(updated)
+  })
+
   // PUT /users/me — actualizar perfil propio
   app.put('/me', {
     preHandler: [app.authenticate],

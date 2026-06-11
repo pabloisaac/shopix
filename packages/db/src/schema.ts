@@ -120,6 +120,7 @@ export const users = pgTable(
     riskLevel: userRiskLevelEnum('risk_level').notNull().default('clean'),
     isBanned: boolean('is_banned').notNull().default(false),
     banReason: text('ban_reason'),
+    payoutAddress: text('payout_address'), // dirección de cobro (puede ser Nexo, BingX, etc.)
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
   },

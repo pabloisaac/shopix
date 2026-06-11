@@ -43,6 +43,13 @@
       "when": 1781188226261,
       "tag": "0005_clear_zarek",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1781195210027,
+      "tag": "0006_thin_screwball",
+      "breakpoints": true
     }
   ]
 }

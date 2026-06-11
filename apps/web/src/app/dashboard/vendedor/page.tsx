@@ -15,8 +15,34 @@ export default function DashboardVendedorPage() {
   const { isConnected } = useAccount()
   const { token, user } = useAuthStore()
   const { balance } = useUSDTBalance()
-  const [orders, setOrders] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  const [orders, setOrders]           = useState<any[]>([])
+  const [loading, setLoading]         = useState(true)
+  const [payoutAddress, setPayoutAddress] = useState('')
+  const [payoutSaving, setPayoutSaving]   = useState(false)
+  const [payoutSaved, setPayoutSaved]     = useState(false)
+  const [payoutError, setPayoutError]     = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!token) return
+    api.get<any>('/users/me', token)
+      .then(u => { if (u.payoutAddress) setPayoutAddress(u.payoutAddress) })
+      .catch(() => {})
+  }, [token])
+
+  async function savePayoutAddress() {
+    if (!token) return
+    setPayoutSaving(true)
+    setPayoutError(null)
+    try {
+      await api.patch('/users/me', { payoutAddress }, token)
+      setPayoutSaved(true)
+      setTimeout(() => setPayoutSaved(false), 3000)
+    } catch (err: any) {
+      setPayoutError(err.message || 'Error al guardar')
+    } finally {
+      setPayoutSaving(false)
+    }
+  }
 
   useEffect(() => {
     if (!token) return
@@ -50,6 +76,37 @@ export default function DashboardVendedorPage() {
           + Publicar
         </Link>
       </div>
+
+      {/* Dirección de cobro */}
+      <GlowCard className="p-5 space-y-3">
+        <div>
+          <h2 className="font-display font-semibold text-shopix-text">💳 Dirección de cobro</h2>
+          <p className="text-xs text-shopix-muted mt-0.5">
+            Adonde recibís el USDT cuando se complete una venta. Puede ser tu dirección de Nexo, BingX, MetaMask, etc.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <input
+            className="input flex-1 font-mono text-xs"
+            placeholder="0x... (Nexo, BingX, cualquier wallet ERC-20)"
+            value={payoutAddress}
+            onChange={e => setPayoutAddress(e.target.value)}
+          />
+          <button
+            onClick={savePayoutAddress}
+            disabled={payoutSaving || !payoutAddress.match(/^0x[0-9a-fA-F]{40}$/)}
+            className="btn-primary px-4 shrink-0"
+          >
+            {payoutSaving ? '…' : payoutSaved ? '✓ Guardado' : 'Guardar'}
+          </button>
+        </div>
+        {!payoutAddress && (
+          <p className="text-xs text-yellow-600 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2">
+            ⚠ Sin dirección de cobro tus ventas no podrán procesarse.
+          </p>
+        )}
+        {payoutError && <p className="text-xs text-red-500">{payoutError}</p>}
+      </GlowCard>
 
       {/* Métricas */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">

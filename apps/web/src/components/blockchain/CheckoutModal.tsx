@@ -1,21 +1,18 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAccount } from 'wagmi'
-import { useCreateOrder } from '@/hooks/useEscrowContract'
-import { useUSDTBalance } from '@/hooks/useUSDTBalance'
-import { PriceDisplay } from '@/components/ui/PriceDisplay'
-import { TxStatus } from '@/components/blockchain/TxStatus'
 import { api } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
+import { PriceDisplay } from '@/components/ui/PriceDisplay'
 import Link from 'next/link'
+import Image from 'next/image'
 
 interface CheckoutModalProps {
   product: {
     id: string
     title: string
     priceUsdt: string
-    seller: { walletAddress: string }
+    seller: { walletAddress: string; username?: string | null }
   }
   onClose: () => void
   onSuccess: (orderId: string) => void
@@ -33,300 +30,344 @@ interface UserAddress {
   isDefault: boolean
 }
 
-type Step = 'confirm' | 'shipping' | 'tx' | 'done'
-type ShippingMode = 'saved' | 'new'
+type Step = 'shipping' | 'payment' | 'waiting' | 'done'
 
-const EMPTY_ADDRESS = { name: '', street: '', city: '', province: '', zip: '', phone: '' }
+const EMPTY_ADDR = { name: '', street: '', city: '', province: '', zip: '', phone: '' }
 
 export function CheckoutModal({ product, onClose, onSuccess }: CheckoutModalProps) {
-  const { address } = useAccount()
   const { token } = useAuthStore()
-  const { balance } = useUSDTBalance()
-  const { createOrder, isPending } = useCreateOrder()
 
-  const [step, setStep] = useState<Step>('confirm')
-  const [txHash, setTxHash] = useState<`0x${string}` | undefined>()
-  const [error, setError] = useState<string | null>(null)
+  const [step, setStep]                   = useState<Step>('shipping')
+  const [error, setError]                 = useState<string | null>(null)
+  const [loading, setLoading]             = useState(false)
 
-  // Direcciones guardadas
+  // Datos del comprador
+  const [refundAddress, setRefundAddress] = useState('')
+  const [buyerEmail, setBuyerEmail]       = useState('')
   const [savedAddresses, setSavedAddresses] = useState<UserAddress[]>([])
-  const [loadingAddresses, setLoadingAddresses] = useState(false)
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null)
-  const [shippingMode, setShippingMode] = useState<ShippingMode>('saved')
-  const [newAddress, setNewAddress] = useState({ ...EMPTY_ADDRESS })
+  const [useNewAddress, setUseNewAddress] = useState(false)
+  const [newAddress, setNewAddress]       = useState({ ...EMPTY_ADDR })
+  const [loadingAddresses, setLoadingAddresses] = useState(false)
 
-  const hasEnoughUsdt = parseFloat(balance) >= parseFloat(product.priceUsdt)
+  // Datos de pago generados
+  const [orderId, setOrderId]             = useState<string | null>(null)
+  const [depositAddress, setDepositAddress] = useState<string | null>(null)
+  const [amountUsdt, setAmountUsdt]       = useState<string>(product.priceUsdt)
+  const [pollCount, setPollCount]         = useState(0)
 
-  // Cargar direcciones al llegar al paso shipping
+  // Cargar direcciones guardadas si está logueado
   useEffect(() => {
-    if (step === 'shipping' && token) {
-      setLoadingAddresses(true)
-      api.get<UserAddress[]>('/users/me/addresses', token)
-        .then(data => {
-          setSavedAddresses(data)
-          if (data.length > 0) {
-            const def = data.find(a => a.isDefault) || data[0]
-            setSelectedAddressId(def.id)
-            setShippingMode('saved')
-          } else {
-            setShippingMode('new')
-          }
-        })
-        .catch(() => setShippingMode('new'))
-        .finally(() => setLoadingAddresses(false))
-    }
-  }, [step, token])
+    if (!token) return
+    setLoadingAddresses(true)
+    api.get<UserAddress[]>('/users/me/addresses', token)
+      .then(data => {
+        setSavedAddresses(data)
+        const def = data.find(a => a.isDefault) || data[0]
+        if (def) setSelectedAddressId(def.id)
+      })
+      .catch(() => {})
+      .finally(() => setLoadingAddresses(false))
+  }, [token])
+
+  // Polling: verificar si llegó el pago
+  useEffect(() => {
+    if (step !== 'waiting' || !orderId) return
+    const interval = setInterval(async () => {
+      try {
+        const res = await api.get<{ status: string }>(`/orders/${orderId}/status`)
+        if (res.status === 'active') {
+          clearInterval(interval)
+          setStep('done')
+          onSuccess(orderId)
+        }
+        setPollCount(c => c + 1)
+      } catch {}
+    }, 10_000) // cada 10 segundos
+    return () => clearInterval(interval)
+  }, [step, orderId])
 
   function getShippingAddress() {
-    if (shippingMode === 'saved' && selectedAddressId) {
+    if (!useNewAddress && selectedAddressId) {
       const addr = savedAddresses.find(a => a.id === selectedAddressId)
       if (addr) return { name: addr.name, street: addr.street, city: addr.city, province: addr.province, zip: addr.zip, phone: addr.phone || '' }
     }
     return newAddress
   }
 
-  const canProceed = () => {
-    if (shippingMode === 'saved') return !!selectedAddressId
-    return !!newAddress.name && !!newAddress.street && !!newAddress.city && !!newAddress.province && !!newAddress.zip
+  function canProceedShipping() {
+    const addr = useNewAddress || savedAddresses.length === 0 ? newAddress : null
+    if (addr) {
+      if (!addr.name || !addr.street || !addr.city || !addr.province || !addr.zip) return false
+    } else if (!selectedAddressId) return false
+    if (!refundAddress.match(/^0x[0-9a-fA-F]{40}$/)) return false
+    if (buyerEmail && !buyerEmail.includes('@')) return false
+    return true
   }
 
-  async function handleBuy() {
-    if (!address || !token) return
+  async function handleCreateOrder() {
+    setLoading(true)
     setError(null)
-
-    const shipping = getShippingAddress()
-
     try {
-      const { contractParams, order } = await api.post<{
-        contractParams: {
-          orderId: `0x${string}`
-          vendedor: `0x${string}`
-          monto: string
-          timeoutDias: number
-        }
-        order: { id: string }
-      }>('/orders', {
-        productId: product.id,
+      const shipping = getShippingAddress()
+      const res = await api.post<{
+        orderId: string
+        depositAddress: string
+        amountUsdt: string
+      }>('/orders/checkout', {
+        productId:     product.id,
+        refundAddress,
+        buyerEmail:    buyerEmail || undefined,
         shippingAddress: shipping,
-        timeoutDays: 7,
-      }, token)
+      }, token || undefined)
 
-      const { createTx } = await createOrder({
-        orderId: contractParams.orderId,
-        vendedor: contractParams.vendedor,
-        amountUsdt: product.priceUsdt,
-        timeoutDias: contractParams.timeoutDias,
-        metaEvidenceHash: `0x${'0'.repeat(64)}`,
-      })
-
-      setTxHash(createTx)
-      setStep('tx')
-
-      await api.post(`/orders/${order.id}/activate`, { txHash: createTx }, token)
-
-      onSuccess(order.id)
+      setOrderId(res.orderId)
+      setDepositAddress(res.depositAddress)
+      setAmountUsdt(res.amountUsdt)
+      setStep('payment')
     } catch (err: any) {
       setError(err.message || 'Error al crear la orden')
+    } finally {
+      setLoading(false)
     }
   }
+
+  const qrUrl = depositAddress
+    ? `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(depositAddress)}`
+    : null
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="w-full max-w-md bg-bg-elevated border border-bg-border rounded-2xl overflow-hidden animate-slide-up max-h-[90vh] overflow-y-auto">
+      <div className="w-full max-w-md bg-bg-elevated border border-bg-border rounded-2xl overflow-hidden animate-slide-up max-h-[92vh] overflow-y-auto">
+
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-bg-border sticky top-0 bg-bg-elevated z-10">
+        <div className="flex items-center justify-between p-5 border-b border-bg-border sticky top-0 bg-bg-elevated z-10">
           <h2 className="font-display font-semibold text-lg">Completar compra</h2>
-          <button onClick={onClose} className="text-shopix-faint hover:text-shopix-text transition-colors">
+          <button onClick={onClose} className="text-shopix-faint hover:text-shopix-text transition-colors p-1">
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        <div className="p-6 space-y-4">
-          {/* Producto */}
+        <div className="p-5 space-y-4">
+
+          {/* Resumen del producto */}
           <div className="bg-bg-secondary rounded-xl p-4">
-            <p className="text-sm text-shopix-muted mb-1">Comprando</p>
+            <p className="text-xs text-shopix-muted mb-1">Comprando</p>
             <p className="font-display font-semibold text-shopix-text">{product.title}</p>
-            <div className="mt-2">
-              <PriceDisplay amountUsdt={product.priceUsdt} size="lg" />
+            <div className="mt-1.5">
+              <PriceDisplay amountUsdt={amountUsdt} size="lg" />
             </div>
           </div>
 
-          {/* Steps */}
-          {step === 'confirm' && (
-            <>
-              {!hasEnoughUsdt && (
-                <div className="bg-red-400/5 border border-red-400/20 rounded-xl p-3 text-sm text-red-400">
-                  Saldo insuficiente. Tenés {Number(balance).toFixed(2)} USDT y necesitás {product.priceUsdt} USDT.
-                </div>
-              )}
-              <div className="bg-bg-secondary rounded-xl p-4 text-sm text-shopix-muted space-y-2">
-                <div className="flex justify-between">
-                  <span>Tu saldo USDT</span>
-                  <span className="font-mono text-shopix-text">{Number(balance).toFixed(2)} USDT</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Fee de plataforma (1.5%)</span>
-                  <span className="font-mono text-shopix-text">
-                    {(parseFloat(product.priceUsdt) * 0.015).toFixed(2)} USDT
-                  </span>
-                </div>
-              </div>
-              <button
-                onClick={() => setStep('shipping')}
-                disabled={!hasEnoughUsdt || !address}
-                className="btn-primary w-full"
-              >
-                Continuar →
-              </button>
-            </>
-          )}
-
+          {/* ── PASO 1: Dirección + datos del comprador ── */}
           {step === 'shipping' && (
-            <>
-              <p className="text-sm font-medium text-text-primary">Dirección de envío</p>
+            <div className="space-y-4">
 
-              {loadingAddresses ? (
-                <div className="space-y-2">
-                  {[1, 2].map(i => <div key={i} className="h-16 rounded-xl bg-bg-secondary animate-pulse" />)}
-                </div>
-              ) : (
-                <>
-                  {/* Direcciones guardadas */}
-                  {savedAddresses.length > 0 && (
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs text-shopix-muted uppercase tracking-wide">Guardadas</p>
-                        <Link
-                          href="/mis-direcciones"
-                          target="_blank"
-                          className="text-xs text-accent hover:underline"
-                        >
-                          Gestionar →
-                        </Link>
-                      </div>
-                      {savedAddresses.map(addr => (
-                        <button
-                          key={addr.id}
-                          type="button"
-                          onClick={() => { setSelectedAddressId(addr.id); setShippingMode('saved') }}
-                          className={`w-full text-left p-3 rounded-xl border transition-colors ${
-                            shippingMode === 'saved' && selectedAddressId === addr.id
-                              ? 'border-accent bg-accent/5'
-                              : 'border-border hover:border-accent/40 bg-bg-secondary'
-                          }`}
-                        >
-                          <div className="flex items-start gap-2">
-                            <span className={`mt-0.5 w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center ${
-                              shippingMode === 'saved' && selectedAddressId === addr.id
-                                ? 'border-accent'
-                                : 'border-shopix-muted'
-                            }`}>
-                              {shippingMode === 'saved' && selectedAddressId === addr.id && (
-                                <span className="w-2 h-2 rounded-full bg-accent block" />
-                              )}
-                            </span>
-                            <div>
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-sm font-medium text-text-primary">{addr.label}</span>
-                                {addr.isDefault && (
-                                  <span className="text-xs text-accent">(predeterminada)</span>
-                                )}
-                              </div>
-                              <p className="text-xs text-shopix-muted">{addr.name} — {addr.street}</p>
-                              <p className="text-xs text-shopix-muted">{addr.city}, {addr.province} CP {addr.zip}</p>
-                            </div>
-                          </div>
-                        </button>
-                      ))}
+              {/* Dirección de envío */}
+              <div>
+                <p className="text-sm font-medium text-text-primary mb-2">Dirección de envío</p>
 
-                      {/* Toggle nueva dirección */}
+                {loadingAddresses ? (
+                  <div className="h-14 rounded-xl bg-bg-secondary animate-pulse" />
+                ) : savedAddresses.length > 0 && !useNewAddress ? (
+                  <div className="space-y-2">
+                    {savedAddresses.map(addr => (
                       <button
+                        key={addr.id}
                         type="button"
-                        onClick={() => setShippingMode(shippingMode === 'new' ? 'saved' : 'new')}
+                        onClick={() => setSelectedAddressId(addr.id)}
                         className={`w-full text-left p-3 rounded-xl border transition-colors ${
-                          shippingMode === 'new'
+                          selectedAddressId === addr.id
                             ? 'border-accent bg-accent/5'
-                            : 'border-dashed border-border hover:border-accent/40'
+                            : 'border-bg-border hover:border-accent/40 bg-bg-secondary'
                         }`}
                       >
-                        <div className="flex items-center gap-2">
-                          <span className={`w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center ${
-                            shippingMode === 'new' ? 'border-accent' : 'border-shopix-muted'
-                          }`}>
-                            {shippingMode === 'new' && <span className="w-2 h-2 rounded-full bg-accent block" />}
+                        <div className="flex items-start gap-2">
+                          <span className={`mt-0.5 w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center ${selectedAddressId === addr.id ? 'border-accent' : 'border-shopix-muted'}`}>
+                            {selectedAddressId === addr.id && <span className="w-2 h-2 rounded-full bg-accent block" />}
                           </span>
-                          <span className="text-sm text-shopix-muted">Ingresar nueva dirección</span>
+                          <div>
+                            <p className="text-sm font-medium">{addr.label} {addr.isDefault && <span className="text-accent text-xs">(predeterminada)</span>}</p>
+                            <p className="text-xs text-shopix-muted">{addr.name} — {addr.street}</p>
+                            <p className="text-xs text-shopix-muted">{addr.city}, {addr.province} CP {addr.zip}</p>
+                          </div>
                         </div>
                       </button>
-                    </div>
-                  )}
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => setUseNewAddress(true)}
+                      className="w-full text-left p-3 rounded-xl border border-dashed border-bg-border hover:border-accent/40 text-sm text-shopix-muted"
+                    >
+                      + Ingresar nueva dirección
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {(['name', 'street', 'city', 'province', 'zip', 'phone'] as const).map(f => (
+                      <input key={f} className="input" value={newAddress[f]} onChange={e => setNewAddress(p => ({ ...p, [f]: e.target.value }))}
+                        placeholder={{ name: 'Nombre completo *', street: 'Calle y número *', city: 'Ciudad *', province: 'Provincia *', zip: 'Código postal *', phone: 'Teléfono (opcional)' }[f]}
+                      />
+                    ))}
+                    {savedAddresses.length > 0 && (
+                      <button type="button" onClick={() => setUseNewAddress(false)} className="text-xs text-accent hover:underline">
+                        ← Usar dirección guardada
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
 
-                  {/* Formulario nueva dirección */}
-                  {(shippingMode === 'new' || savedAddresses.length === 0) && (
-                    <div className="space-y-3">
-                      {savedAddresses.length === 0 && (
-                        <div className="flex items-center justify-between">
-                          <p className="text-xs text-shopix-muted">No tenés direcciones guardadas.</p>
-                          <Link href="/mis-direcciones" target="_blank" className="text-xs text-accent hover:underline">
-                            Agregar →
-                          </Link>
-                        </div>
-                      )}
-                      {(['name', 'street', 'city', 'province', 'zip', 'phone'] as const).map((field) => (
-                        <input
-                          key={field}
-                          className="input"
-                          placeholder={{
-                            name: 'Nombre completo *',
-                            street: 'Calle y número *',
-                            city: 'Ciudad *',
-                            province: 'Provincia *',
-                            zip: 'Código postal *',
-                            phone: 'Teléfono (opcional)',
-                          }[field]}
-                          value={newAddress[field]}
-                          onChange={(e) => setNewAddress(prev => ({ ...prev, [field]: e.target.value }))}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </>
+              {/* Dirección de reembolso */}
+              <div>
+                <label className="text-sm font-medium text-text-primary block mb-1.5">
+                  Tu dirección USDT para reembolsos <span className="text-red-400">*</span>
+                </label>
+                <input
+                  className="input font-mono text-xs"
+                  placeholder="0x... (Nexo, BingX, MetaMask, cualquier wallet)"
+                  value={refundAddress}
+                  onChange={e => setRefundAddress(e.target.value)}
+                />
+                <p className="text-xs text-shopix-faint mt-1">
+                  Solo se usa si hay un reembolso. Puede ser tu dirección de Nexo, BingX u otra wallet.
+                </p>
+              </div>
+
+              {/* Email (opcional) */}
+              <div>
+                <label className="text-sm font-medium text-text-primary block mb-1.5">
+                  Email para notificaciones <span className="text-shopix-faint text-xs">(opcional)</span>
+                </label>
+                <input
+                  className="input"
+                  type="email"
+                  placeholder="tu@email.com"
+                  value={buyerEmail}
+                  onChange={e => setBuyerEmail(e.target.value)}
+                />
+              </div>
+
+              {error && (
+                <div className="bg-red-400/5 border border-red-400/20 rounded-xl p-3 text-sm text-red-400">{error}</div>
               )}
 
               <button
-                onClick={handleBuy}
-                disabled={isPending || !canProceed() || loadingAddresses}
+                onClick={handleCreateOrder}
+                disabled={loading || !canProceedShipping()}
                 className="btn-primary w-full"
               >
-                {isPending ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <span className="animate-spin">⟳</span>
-                    Procesando…
-                  </span>
-                ) : (
-                  'Aprobar USDT y confirmar compra'
-                )}
+                {loading ? <span className="flex items-center justify-center gap-2"><span className="animate-spin">⟳</span> Generando pago…</span> : 'Continuar →'}
               </button>
-            </>
+            </div>
           )}
 
-          {step === 'tx' && txHash && (
-            <TxStatus hash={txHash} />
+          {/* ── PASO 2: QR de pago ── */}
+          {step === 'payment' && depositAddress && (
+            <div className="space-y-4">
+              <div className="bg-accent/5 border border-accent/20 rounded-xl p-4 text-center space-y-3">
+                <p className="text-sm font-semibold text-text-primary">Transferí exactamente este monto</p>
+
+                <div className="bg-bg-elevated rounded-xl p-3 inline-block">
+                  <p className="text-3xl font-display font-bold text-accent">{amountUsdt} <span className="text-base">USDT</span></p>
+                  <p className="text-xs text-shopix-faint mt-0.5">Red: Sepolia (ERC-20)</p>
+                </div>
+
+                <p className="text-xs text-shopix-muted">a esta dirección:</p>
+
+                {/* Dirección copiable */}
+                <button
+                  onClick={() => navigator.clipboard.writeText(depositAddress)}
+                  className="w-full bg-bg-secondary hover:bg-bg-border rounded-xl p-3 transition-colors group"
+                >
+                  <p className="font-mono text-xs break-all text-shopix-text group-hover:text-accent transition-colors">{depositAddress}</p>
+                  <p className="text-xs text-shopix-faint mt-1 group-hover:text-accent transition-colors">📋 Tap para copiar</p>
+                </button>
+
+                {/* QR */}
+                {qrUrl && (
+                  <div className="flex justify-center">
+                    <div className="bg-white p-2 rounded-xl inline-block">
+                      <img src={qrUrl} alt="QR dirección de pago" width={160} height={160} />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-3 space-y-1.5">
+                <p className="text-xs font-semibold text-yellow-800">⚠ Importante</p>
+                <ul className="text-xs text-yellow-700 space-y-1 list-disc list-inside">
+                  <li>Enviá <strong>exactamente {amountUsdt} USDT</strong></li>
+                  <li>Solo en red <strong>Sepolia</strong> (para pruebas)</li>
+                  <li>Esta dirección es válida solo para esta compra</li>
+                  <li>Una vez detectado el pago, la orden se activa automáticamente</li>
+                </ul>
+              </div>
+
+              <button
+                onClick={() => setStep('waiting')}
+                className="btn-primary w-full"
+              >
+                Ya transferí, verificar pago →
+              </button>
+            </div>
           )}
 
-          {error && (
-            <div className="bg-red-400/5 border border-red-400/20 rounded-xl p-3 text-sm text-red-400">
-              {error}
+          {/* ── PASO 3: Esperando confirmación ── */}
+          {step === 'waiting' && (
+            <div className="space-y-4 text-center py-4">
+              <div className="w-16 h-16 mx-auto rounded-full bg-accent/10 flex items-center justify-center">
+                <span className="text-2xl animate-spin inline-block">⟳</span>
+              </div>
+              <div>
+                <p className="font-display font-semibold text-text-primary">Verificando tu pago…</p>
+                <p className="text-sm text-shopix-muted mt-1">
+                  Revisando cada 10 segundos ({pollCount} verificaciones)
+                </p>
+              </div>
+
+              {depositAddress && (
+                <div className="bg-bg-secondary rounded-xl p-3">
+                  <p className="text-xs text-shopix-muted mb-1">Dirección de depósito</p>
+                  <p className="font-mono text-xs break-all text-shopix-text">{depositAddress}</p>
+                </div>
+              )}
+
+              <p className="text-xs text-shopix-faint">
+                ¿Ya transferiste? Puede tomar 1-3 minutos en confirmarse en la red.
+              </p>
+
+              <button onClick={() => setStep('payment')} className="text-sm text-accent hover:underline">
+                ← Volver a los datos de pago
+              </button>
+            </div>
+          )}
+
+          {/* ── PASO 4: Pago confirmado ── */}
+          {step === 'done' && orderId && (
+            <div className="space-y-4 text-center py-4">
+              <div className="w-16 h-16 mx-auto rounded-full bg-green-100 flex items-center justify-center text-3xl">
+                ✅
+              </div>
+              <div>
+                <p className="font-display font-semibold text-lg text-text-primary">¡Pago confirmado!</p>
+                <p className="text-sm text-shopix-muted mt-1">
+                  Los fondos están en escrow. El vendedor fue notificado.
+                </p>
+              </div>
+              <Link href={`/mis-ordenes/${orderId}`} className="btn-primary inline-block">
+                Ver mi orden →
+              </Link>
             </div>
           )}
 
           <p className="text-xs text-shopix-faint text-center">
-            Los fondos quedan en escrow hasta que confirmes la recepción del producto o expire el timeout.
+            Los fondos quedan en escrow hasta que confirmés la recepción o expire el timeout.
           </p>
         </div>
       </div>
