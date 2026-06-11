@@ -1,18 +1,15 @@
 import { getDefaultConfig } from '@rainbow-me/rainbowkit'
-import { polygon, polygonAmoy, hardhat } from 'wagmi/chains'
+import { sepolia, hardhat } from 'wagmi/chains'
 import { http } from 'wagmi'
 
+const isProd = process.env.NEXT_PUBLIC_NETWORK === 'sepolia'
+
 export const wagmiConfig = getDefaultConfig({
-  appName: 'Cripex',
+  appName: 'Shopix',
   projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'demo-project-id',
-  chains: [
-    hardhat,
-    polygon,
-    polygonAmoy,
-  ],
+  chains: isProd ? [sepolia] : [hardhat, sepolia],
   transports: {
-    [polygon.id]: http(process.env.NEXT_PUBLIC_ALCHEMY_POLYGON_RPC),
-    [polygonAmoy.id]: http(process.env.NEXT_PUBLIC_ALCHEMY_POLYGON_RPC),
+    [sepolia.id]: http(process.env.NEXT_PUBLIC_ALCHEMY_SEPOLIA_RPC || 'https://rpc.sepolia.org'),
     [hardhat.id]: http('http://127.0.0.1:8545'),
   },
   ssr: true,
